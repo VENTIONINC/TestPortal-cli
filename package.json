@@ -1,0 +1,15 @@
+{
+  "name": "test-portal-integration-cli",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com.vizit:iharMikailau/test-portal-integration-cli.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
