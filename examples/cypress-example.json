@@ -1,0 +1,406 @@
+{
+  "stats": {
+    "suites": 4,
+    "tests": 12,
+    "passes": 8,
+    "pending": 1,
+    "failures": 3,
+    "start": "2023-12-28T14:30:00.123Z",
+    "end": "2023-12-28T14:33:45.567Z",
+    "duration": 225444
+  },
+  "results": [
+    {
+      "uuid": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/login.cy.js",
+      "file": "cypress/e2e/auth/login.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [
+        {
+          "title": ["Login Tests", "should login with valid credentials"],
+          "fullTitle": "Login Tests should login with valid credentials",
+          "timedOut": null,
+          "duration": 3456,
+          "state": "passed",
+          "speed": "fast",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/login')\ncy.get('[data-cy=username]').type('user@example.com')\ncy.get('[data-cy=password]').type('password123')\ncy.get('[data-cy=login-btn]').click()\ncy.url().should('include', '/dashboard')\ncy.get('[data-cy=welcome-message]').should('contain', 'Welcome')",
+          "err": {},
+          "uuid": "b2c3d4e5-f6g7-8901-2345-6789abcdef01",
+          "parentUUID": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": ["Login Tests", "should show error for invalid credentials"],
+          "fullTitle": "Login Tests should show error for invalid credentials",
+          "timedOut": null,
+          "duration": 2789,
+          "state": "passed",
+          "speed": "fast",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/login')\ncy.get('[data-cy=username]').type('invalid@example.com')\ncy.get('[data-cy=password]').type('wrongpassword')\ncy.get('[data-cy=login-btn]').click()\ncy.get('[data-cy=error-message]').should('be.visible')\ncy.get('[data-cy=error-message]').should('contain', 'Invalid credentials')",
+          "err": {},
+          "uuid": "c3d4e5f6-g7h8-9012-3456-789abcdef012",
+          "parentUUID": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": ["Login Tests", "should handle password reset flow"],
+          "fullTitle": "Login Tests should handle password reset flow",
+          "timedOut": false,
+          "duration": 8934,
+          "state": "failed",
+          "speed": null,
+          "pass": false,
+          "fail": true,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/login')\ncy.get('[data-cy=forgot-password]').click()\ncy.get('[data-cy=email-input]').type('user@example.com')\ncy.get('[data-cy=reset-submit]').click()\ncy.get('[data-cy=success-message]').should('be.visible')",
+          "err": {
+            "message": "Timed out retrying after 4000ms: Expected to find element: `[data-cy=success-message]`, but never found it.",
+            "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=success-message]`, but never found it.\n    at Context.eval (webpack:///./cypress/e2e/auth/login.cy.js:23:8)",
+            "diff": null
+          },
+          "uuid": "d4e5f6g7-h8i9-0123-4567-89abcdef0123",
+          "parentUUID": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "isHook": false,
+          "skipped": false
+        }
+      ],
+      "suites": [],
+      "passes": [
+        "b2c3d4e5-f6g7-8901-2345-6789abcdef01",
+        "c3d4e5f6-g7h8-9012-3456-789abcdef012"
+      ],
+      "failures": ["d4e5f6g7-h8i9-0123-4567-89abcdef0123"],
+      "pending": [],
+      "skipped": [],
+      "duration": 15179,
+      "root": false,
+      "rootEmpty": false,
+      "_timeout": 2000
+    },
+    {
+      "uuid": "e5f6g7h8-i9j0-1234-5678-9abcdef01234",
+      "title": "",
+      "fullFile": "cypress/e2e/ecommerce/cart.cy.js",
+      "file": "cypress/e2e/ecommerce/cart.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [
+        {
+          "title": ["Shopping Cart", "should add item to cart"],
+          "fullTitle": "Shopping Cart should add item to cart",
+          "timedOut": null,
+          "duration": 4567,
+          "state": "passed",
+          "speed": "medium",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/products/1')\ncy.get('[data-cy=add-to-cart]').click()\ncy.get('[data-cy=cart-count]').should('contain', '1')\ncy.get('[data-cy=cart-icon]').click()\ncy.get('[data-cy=cart-item]').should('exist')",
+          "err": {},
+          "uuid": "f6g7h8i9-j0k1-2345-6789-abcdef012345",
+          "parentUUID": "e5f6g7h8-i9j0-1234-5678-9abcdef01234",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": ["Shopping Cart", "should remove item from cart"],
+          "fullTitle": "Shopping Cart should remove item from cart",
+          "timedOut": null,
+          "duration": 3234,
+          "state": "passed",
+          "speed": "fast",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/cart')\ncy.get('[data-cy=remove-item]').first().click()\ncy.get('[data-cy=confirm-remove]').click()\ncy.get('[data-cy=cart-empty]').should('be.visible')",
+          "err": {},
+          "uuid": "g7h8i9j0-k1l2-3456-789a-bcdef0123456",
+          "parentUUID": "e5f6g7h8-i9j0-1234-5678-9abcdef01234",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": ["Shopping Cart", "should complete checkout process"],
+          "fullTitle": "Shopping Cart should complete checkout process",
+          "timedOut": true,
+          "duration": 30000,
+          "state": "failed",
+          "speed": null,
+          "pass": false,
+          "fail": true,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/checkout')\ncy.get('[data-cy=billing-name]').type('John Doe')\ncy.get('[data-cy=billing-email]').type('john@example.com')\ncy.get('[data-cy=card-number]').type('4111111111111111')\ncy.get('[data-cy=submit-payment]').click()\ncy.get('[data-cy=success-message]').should('be.visible', { timeout: 10000 })",
+          "err": {
+            "message": "cy.click() failed because this element is not visible:\n\n`<button data-cy=\"submit-payment\" disabled=\"\">Processing...</button>`\n\nThis element `<button>` is not visible because it has CSS property: `display: none`\n\nFix this problem, or use {force: true} to disable error checking.\n\nhttps://on.cypress.io/element-not-visible",
+            "estack": "CypressError: cy.click() failed because this element is not visible:\n\n`<button data-cy=\"submit-payment\" disabled=\"\">Processing...</button>`\n\nThis element `<button>` is not visible because it has CSS property: `display: none`\n\nFix this problem, or use {force: true} to disable error checking.\n\nhttps://on.cypress.io/element-not-visible\n    at Context.eval (webpack:///./cypress/e2e/ecommerce/cart.cy.js:45:8)",
+            "diff": null
+          },
+          "uuid": "h8i9j0k1-l2m3-4567-89ab-cdef01234567",
+          "parentUUID": "e5f6g7h8-i9j0-1234-5678-9abcdef01234",
+          "isHook": false,
+          "skipped": false
+        }
+      ],
+      "suites": [],
+      "passes": [
+        "f6g7h8i9-j0k1-2345-6789-abcdef012345",
+        "g7h8i9j0-k1l2-3456-789a-bcdef0123456"
+      ],
+      "failures": ["h8i9j0k1-l2m3-4567-89ab-cdef01234567"],
+      "pending": [],
+      "skipped": [],
+      "duration": 37801,
+      "root": false,
+      "rootEmpty": false,
+      "_timeout": 2000
+    },
+    {
+      "uuid": "i9j0k1l2-m3n4-5678-9abc-def012345678",
+      "title": "",
+      "fullFile": "cypress/e2e/ui/search.cy.js",
+      "file": "cypress/e2e/ui/search.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [
+        {
+          "title": ["Search Functionality", "should search for products"],
+          "fullTitle": "Search Functionality should search for products",
+          "timedOut": null,
+          "duration": 2345,
+          "state": "passed",
+          "speed": "fast",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/')\ncy.get('[data-cy=search-input]').type('laptop')\ncy.get('[data-cy=search-button]').click()\ncy.get('[data-cy=search-results]').should('contain', 'laptop')\ncy.get('[data-cy=product-item]').should('have.length.greaterThan', 0)",
+          "err": {},
+          "uuid": "j0k1l2m3-n4o5-6789-abcd-ef0123456789",
+          "parentUUID": "i9j0k1l2-m3n4-5678-9abc-def012345678",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": [
+            "Search Functionality",
+            "should handle empty search results"
+          ],
+          "fullTitle": "Search Functionality should handle empty search results",
+          "timedOut": null,
+          "duration": 1876,
+          "state": "passed",
+          "speed": "fast",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.visit('/')\ncy.get('[data-cy=search-input]').type('nonexistentproduct123')\ncy.get('[data-cy=search-button]').click()\ncy.get('[data-cy=no-results]').should('be.visible')\ncy.get('[data-cy=no-results]').should('contain', 'No products found')",
+          "err": {},
+          "uuid": "k1l2m3n4-o5p6-789a-bcde-f01234567890",
+          "parentUUID": "i9j0k1l2-m3n4-5678-9abc-def012345678",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": ["Search Functionality", "should filter search results"],
+          "fullTitle": "Search Functionality should filter search results",
+          "timedOut": null,
+          "duration": 0,
+          "state": "pending",
+          "speed": null,
+          "pass": false,
+          "fail": false,
+          "pending": true,
+          "context": null,
+          "code": "cy.visit('/')\ncy.get('[data-cy=search-input]').type('electronics')\ncy.get('[data-cy=search-button]').click()\ncy.get('[data-cy=price-filter]').select('under-100')\ncy.get('[data-cy=product-item]').each(($el) => {\n  cy.wrap($el).find('[data-cy=price]').invoke('text').then((price) => {\n    expect(parseInt(price.replace('$', ''))).to.be.lessThan(100)\n  })\n})",
+          "err": {},
+          "uuid": "l2m3n4o5-p6q7-89ab-cdef-012345678901",
+          "parentUUID": "i9j0k1l2-m3n4-5678-9abc-def012345678",
+          "isHook": false,
+          "skipped": false
+        }
+      ],
+      "suites": [],
+      "passes": [
+        "j0k1l2m3-n4o5-6789-abcd-ef0123456789",
+        "k1l2m3n4-o5p6-789a-bcde-f01234567890"
+      ],
+      "failures": [],
+      "pending": ["l2m3n4o5-p6q7-89ab-cdef-012345678901"],
+      "skipped": [],
+      "duration": 4221,
+      "root": false,
+      "rootEmpty": false,
+      "_timeout": 2000
+    },
+    {
+      "uuid": "m3n4o5p6-q7r8-9abc-def0-123456789012",
+      "title": "",
+      "fullFile": "cypress/e2e/ui/responsive.cy.js",
+      "file": "cypress/e2e/ui/responsive.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [
+        {
+          "title": [
+            "Responsive Design",
+            "should display mobile menu on small screens"
+          ],
+          "fullTitle": "Responsive Design should display mobile menu on small screens",
+          "timedOut": null,
+          "duration": 3456,
+          "state": "passed",
+          "speed": "medium",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.viewport(375, 667)\ncy.visit('/')\ncy.get('[data-cy=mobile-menu-toggle]').should('be.visible')\ncy.get('[data-cy=desktop-nav]').should('not.be.visible')\ncy.get('[data-cy=mobile-menu-toggle]').click()\ncy.get('[data-cy=mobile-menu]').should('be.visible')",
+          "err": {},
+          "uuid": "n4o5p6q7-r8s9-abcd-ef01-234567890123",
+          "parentUUID": "m3n4o5p6-q7r8-9abc-def0-123456789012",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": [
+            "Responsive Design",
+            "should display desktop navigation on large screens"
+          ],
+          "fullTitle": "Responsive Design should display desktop navigation on large screens",
+          "timedOut": null,
+          "duration": 2145,
+          "state": "passed",
+          "speed": "fast",
+          "pass": true,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "cy.viewport(1920, 1080)\ncy.visit('/')\ncy.get('[data-cy=desktop-nav]').should('be.visible')\ncy.get('[data-cy=mobile-menu-toggle]').should('not.be.visible')\ncy.get('[data-cy=nav-item]').should('have.length', 5)",
+          "err": {},
+          "uuid": "o5p6q7r8-s9t0-bcde-f012-345678901234",
+          "parentUUID": "m3n4o5p6-q7r8-9abc-def0-123456789012",
+          "isHook": false,
+          "skipped": false
+        },
+        {
+          "title": [
+            "Responsive Design",
+            "should handle tablet layout correctly"
+          ],
+          "fullTitle": "Responsive Design should handle tablet layout correctly",
+          "timedOut": false,
+          "duration": 5678,
+          "state": "failed",
+          "speed": null,
+          "pass": false,
+          "fail": true,
+          "pending": false,
+          "context": null,
+          "code": "cy.viewport(768, 1024)\ncy.visit('/')\ncy.get('[data-cy=tablet-sidebar]').should('be.visible')\ncy.get('[data-cy=main-content]').should('have.css', 'margin-left', '250px')",
+          "err": {
+            "message": "AssertionError: expected '0px' to equal '250px'\n\n+ expected - actual\n\n-0px\n+250px\n",
+            "estack": "AssertionError: expected '0px' to equal '250px'\n\n+ expected - actual\n\n-0px\n+250px\n\n    at Context.eval (webpack:///./cypress/e2e/ui/responsive.cy.js:34:8)",
+            "diff": "- 0px\n+ 250px"
+          },
+          "uuid": "p6q7r8s9-t0u1-cdef-0123-456789012345",
+          "parentUUID": "m3n4o5p6-q7r8-9abc-def0-123456789012",
+          "isHook": false,
+          "skipped": false
+        }
+      ],
+      "suites": [],
+      "passes": [
+        "n4o5p6q7-r8s9-abcd-ef01-234567890123",
+        "o5p6q7r8-s9t0-bcde-f012-345678901234"
+      ],
+      "failures": ["p6q7r8s9-t0u1-cdef-0123-456789012345"],
+      "pending": [],
+      "skipped": [],
+      "duration": 11279,
+      "root": false,
+      "rootEmpty": false,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "10.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    }
+  },
+  "config": {
+    "baseUrl": "http://localhost:3000",
+    "browser": {
+      "name": "chrome",
+      "version": "119.0.6045.105"
+    },
+    "viewportWidth": 1000,
+    "viewportHeight": 660,
+    "defaultCommandTimeout": 4000,
+    "requestTimeout": 5000,
+    "responseTimeout": 30000,
+    "pageLoadTimeout": 60000,
+    "video": true,
+    "screenshotOnRunFailure": true,
+    "trashAssetsBeforeRuns": true
+  },
+  "screenshots": [
+    {
+      "screenshot": "cypress/screenshots/auth/login.cy.js/Login Tests -- should handle password reset flow (failed).png",
+      "test": "should handle password reset flow",
+      "takenAt": "2023-12-28T14:30:49.544Z"
+    },
+    {
+      "screenshot": "cypress/screenshots/ecommerce/cart.cy.js/Shopping Cart -- should complete checkout process (failed).png",
+      "test": "should complete checkout process",
+      "takenAt": "2023-12-28T14:32:10.890Z"
+    },
+    {
+      "screenshot": "cypress/screenshots/ui/responsive.cy.js/Responsive Design -- should handle tablet layout correctly (failed).png",
+      "test": "should handle tablet layout correctly",
+      "takenAt": "2023-12-28T14:33:25.123Z"
+    }
+  ],
+  "videos": [
+    {
+      "video": "cypress/videos/auth/login.cy.js.mp4"
+    },
+    {
+      "video": "cypress/videos/ecommerce/cart.cy.js.mp4"
+    },
+    {
+      "video": "cypress/videos/ui/search.cy.js.mp4"
+    },
+    {
+      "video": "cypress/videos/ui/responsive.cy.js.mp4"
+    }
+  ]
+}
