@@ -194,6 +194,7 @@
 - [ ] Webhook support
 - [ ] Cloud storage uploads (S3, Azure, GCS)
 - [ ] Integration with test management platforms
+- [ ] Format reports using OpenAI API
 
 ## 🐛 Known Issues & Tech Debt
 
