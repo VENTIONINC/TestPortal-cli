@@ -1,8 +1,9 @@
-import { BaseProvider } from '@/types/providers';
 import { PlaywrightProvider } from '@/providers/playwright';
+import { CypressProvider } from '@/providers/cypress';
+import { UnifiedProvider } from '@/types/providers';
 
 export class ProviderRegistry {
-  private providers: Map<string, BaseProvider> = new Map();
+  private providers: Map<string, UnifiedProvider> = new Map();
 
   constructor() {
     this.registerDefaultProviders();
@@ -10,13 +11,14 @@ export class ProviderRegistry {
 
   private registerDefaultProviders(): void {
     this.registerProvider(new PlaywrightProvider());
+    this.registerProvider(new CypressProvider());
   }
 
-  registerProvider(provider: BaseProvider): void {
+  registerProvider(provider: UnifiedProvider): void {
     this.providers.set(provider.name.toLowerCase(), provider);
   }
 
-  getProvider(name: string): BaseProvider | undefined {
+  getProvider(name: string): UnifiedProvider | undefined {
     return this.providers.get(name.toLowerCase());
   }
 
