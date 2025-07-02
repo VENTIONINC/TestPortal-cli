@@ -7,7 +7,6 @@ import {
   UnifiedTestResult,
   UnifiedTestStatus,
   UnifiedTestStats,
-  UnifiedEnvironment,
 } from '@/types/unified-report';
 import {
   CypressReport,
@@ -42,7 +41,6 @@ export class CypressProvider implements UnifiedProvider {
 
     const unifiedSuites = this.convertResults(cypressReport.results);
     const stats = this.calculateStats(unifiedSuites, cypressReport);
-    const environment = await this.buildEnvironment(cypressReport);
 
     return {
       id: randomUUID(),
@@ -55,7 +53,6 @@ export class CypressProvider implements UnifiedProvider {
       }),
       stats,
       suites: unifiedSuites,
-      environment,
       createdAt: new Date().toISOString(),
     };
   }
@@ -170,35 +167,5 @@ export class CypressProvider implements UnifiedProvider {
       startTime,
       endTime,
     };
-  }
-
-  private async buildEnvironment(
-    cypressReport: CypressReport
-  ): Promise<UnifiedEnvironment> {
-    return {
-      platform: process.platform,
-      os: `${process.platform} ${process.arch}`,
-      browser: cypressReport.config?.browser
-        ? {
-            name: cypressReport.config.browser.name,
-            version: cypressReport.config.browser.version,
-          }
-        : undefined,
-      node: process.version,
-      ci: this.detectCI(),
-    };
-  }
-
-  private detectCI(): boolean {
-    const env = process.env;
-    return !!(
-      env.CI ||
-      env.GITHUB_ACTIONS ||
-      env.GITLAB_CI ||
-      env.JENKINS_URL ||
-      env.AZURE_HTTP_USER_AGENT ||
-      env.TRAVIS ||
-      env.CIRCLECI
-    );
   }
 }

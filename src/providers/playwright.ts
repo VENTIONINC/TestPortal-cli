@@ -8,7 +8,6 @@ import {
   UnifiedTestResult,
   UnifiedTestStatus,
   UnifiedTestStats,
-  UnifiedEnvironment,
 } from '@/types/unified-report';
 import {
   PlaywrightReport,
@@ -43,16 +42,15 @@ export class PlaywrightProvider implements UnifiedProvider {
 
     const unifiedSuites = this.flattenSuites(playwrightReport.suites);
     const stats = this.calculateStats(unifiedSuites, playwrightReport);
-    const environment = await this.buildEnvironment();
 
     return {
       id: randomUUID(),
+      runId: playwrightReport.runId,
       framework: 'playwright',
       frameworkVersion: playwrightReport.config.version || 'unknown',
       toolVersion: playwrightReport.config.version || 'unknown',
       stats,
       suites: unifiedSuites,
-      environment,
       createdAt: new Date().toISOString(),
     };
   }
@@ -231,27 +229,5 @@ export class PlaywrightProvider implements UnifiedProvider {
       startTime,
       endTime,
     };
-  }
-
-  private async buildEnvironment(): Promise<UnifiedEnvironment> {
-    return {
-      platform: process.platform,
-      os: `${process.platform} ${process.arch}`,
-      node: process.version,
-      ci: this.detectCI(),
-    };
-  }
-
-  private detectCI(): boolean {
-    const env = process.env;
-    return !!(
-      env.CI ||
-      env.GITHUB_ACTIONS ||
-      env.GITLAB_CI ||
-      env.JENKINS_URL ||
-      env.AZURE_HTTP_USER_AGENT ||
-      env.TRAVIS ||
-      env.CIRCLECI
-    );
   }
 }

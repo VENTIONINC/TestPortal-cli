@@ -96,25 +96,6 @@ export const UnifiedTestStatsSchema = z.object({
 
 export type UnifiedTestStats = z.infer<typeof UnifiedTestStatsSchema>;
 
-// Environment and execution context
-export const UnifiedEnvironmentSchema = z.object({
-  platform: z.string().optional(),
-  os: z.string().optional(),
-  browser: z
-    .object({
-      name: z.string(),
-      version: z.string(),
-    })
-    .optional(),
-  node: z.string().optional(),
-  ci: z.boolean().optional(),
-  parallel: z.boolean().optional(),
-  workers: z.number().optional(),
-  timeout: z.number().optional(),
-});
-
-export type UnifiedEnvironment = z.infer<typeof UnifiedEnvironmentSchema>;
-
 // Coverage information (mainly from Jest)
 export const UnifiedCoverageSchema = z.object({
   statements: z
@@ -152,26 +133,15 @@ export type UnifiedCoverage = z.infer<typeof UnifiedCoverageSchema>;
 // Main unified report structure
 export const UnifiedReportSchema = z.object({
   id: z.string(),
-  framework: z.enum(['jest', 'cypress', 'playwright', 'other']),
+  runId: z.string().optional(),
+  framework: z.enum(['jest', 'cypress', 'playwright', 'junit', 'other']),
   frameworkVersion: z.string().optional(),
   toolVersion: z.string().optional(),
   stats: UnifiedTestStatsSchema,
   suites: z.array(UnifiedTestSuiteSchema),
-  environment: UnifiedEnvironmentSchema.optional(),
   coverage: UnifiedCoverageSchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string().optional(),
 });
 
-export interface UnifiedReport {
-  id: string;
-  framework: 'jest' | 'cypress' | 'playwright' | 'other';
-  frameworkVersion?: string;
-  toolVersion?: string;
-  stats: UnifiedTestStats;
-  suites: UnifiedTestSuite[];
-  environment?: UnifiedEnvironment;
-  coverage?: UnifiedCoverage;
-  createdAt: string;
-  updatedAt?: string;
-}
+export type UnifiedReport = z.infer<typeof UnifiedReportSchema>;
