@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import { randomUUID } from 'crypto';
-import { UnifiedProvider } from '@/types/providers';
+import { BaseProvider } from '@/types/providers';
 import {
   UnifiedReport,
   UnifiedTestSuite,
@@ -15,7 +15,7 @@ import {
   CypressSuite,
 } from '@/types/cypress';
 
-export class CypressProvider implements UnifiedProvider {
+export class CypressProvider implements BaseProvider {
   public readonly name = 'cypress';
 
   async validate(inputPath: string): Promise<boolean> {

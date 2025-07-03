@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { randomUUID } from 'crypto';
 import { parseStringPromise } from 'xml2js';
-import { UnifiedProvider } from '@/types/providers';
+import { BaseProvider } from '@/types/providers';
 import {
   UnifiedReport,
   UnifiedTestSuite,
@@ -11,7 +11,7 @@ import {
 } from '@/types/unified-report';
 import { JunitTestSuite, JunitTestCase, JunitTestSuites } from '@/types/junit';
 
-export class JunitProvider implements UnifiedProvider {
+export class JunitProvider implements BaseProvider {
   public readonly name = 'junit';
 
   async validate(inputPath: string): Promise<boolean> {

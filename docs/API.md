@@ -1,90 +1,102 @@
-# 📚 API Documentation
+# API Documentation
 
-This document provides detailed API documentation for all classes, interfaces, and functions available in the test-report-ctrfer library.
+This document provides detailed API documentation for all classes, interfaces, and functions available in the test-report-converter library.
 
 ## Table of Contents
 
-- [Main Functions](#main-functions)
-- [Core Classes](#core-classes)
-- [Type Definitions](#type-definitions)
-- [Provider System](#provider-system)
-- [Webhook Configuration](#webhook-configuration)
-- [Error Handling](#error-handling)
+- [Functions](#functions)
+  - [convert()](#convert)
+- [Classes](#classes)
+  - [Converter](#converter)
+  - [HttpClient](#httpclient)
+- [Interfaces](#interfaces)
+  - [UnifiedReport](#unifiedreport)
+  - [ConvertOptions](#convertoptions)
+  - [WebhookConfig](#webhookconfig)
 
-## Main Functions
+## Functions
 
-### `convert(options)`
+### `convert()`
 
-The primary function for converting test reports to CTRF format.
+The primary function for converting test reports to unified format.
+
+```typescript
+function convert(options: ConvertOptions): Promise<UnifiedReport>
+```
 
 **Parameters:**
-- `options` (object): Configuration options for conversion
-  - `input` (string, required): Path to the source test report file
-  - `provider` (string, required): Test framework provider name
-  - `output` (string, optional): Output file path
-  - `webhook` (WebhookConfig, optional): Webhook configuration for remote delivery
+- `options` (ConvertOptions): Configuration object for conversion
 
-**Returns:** `Promise<CTRFReport>` - The converted CTRF report
+**Returns:** `Promise<UnifiedReport>` - The converted unified report
 
 **Example:**
 ```typescript
-import { convert } from 'test-report-ctrfer';
+import { convert } from 'test-report-converter';
 
 const report = await convert({
   input: './playwright-results.json',
   provider: 'playwright',
-  output: './ctrf-report.json',
+  output: './unified-report.json',
   webhook: {
     url: 'https://api.example.com/reports',
-    authToken: 'Bearer token'
+    authToken: 'your-token'
   }
 });
 ```
 
-## Core Classes
+## Classes
 
 ### `Converter`
 
-The main converter class that handles test report conversion and delivery.
+Main converter class that handles the conversion process.
 
 #### Constructor
 
 ```typescript
-const converter = new Converter();
+new Converter()
 ```
+
+Creates a new Converter instance with default configuration.
 
 #### Methods
 
-##### `convert(options: ConvertOptions): Promise<CTRFReport>`
+##### `convert(options: ConvertOptions): Promise<UnifiedReport>`
 
-Converts a test report to CTRF format.
+Converts a test report to unified format.
 
 **Parameters:**
-- `options` (ConvertOptions): Conversion configuration
+- `options` (ConvertOptions): Configuration for the conversion
 
-**Returns:** `Promise<CTRFReport>` - The converted report
+**Returns:** `Promise<UnifiedReport>` - The converted report
 
 **Example:**
 ```typescript
+import { Converter } from 'test-report-converter';
+
+const converter = new Converter();
 const report = await converter.convert({
   input: './test-results.json',
-  provider: 'playwright'
+  provider: 'playwright',
+  output: './unified-report.json',
 });
 ```
 
 ##### `convertAndSave(options: ConvertOptions): Promise<void>`
 
-Converts a test report and handles output (file, stdout, webhook).
+Converts a test report and saves/sends it according to the options.
 
 **Parameters:**
-- `options` (ConvertOptions): Complete conversion and output configuration
+- `options` (ConvertOptions): Configuration including output and webhook options
+
+**Returns:** `Promise<void>`
 
 **Example:**
 ```typescript
+const converter = new Converter();
 await converter.convertAndSave({
   input: './test-results.json',
   provider: 'playwright',
-  output: './ctrf-report.json',
+  output: './unified-report.json',
   webhook: {
     url: 'https://api.example.com/webhook'
   }
@@ -99,163 +111,146 @@ Returns a list of available test framework providers.
 
 **Example:**
 ```typescript
+const converter = new Converter();
 const providers = converter.getAvailableProviders();
-console.log(providers); // ['playwright']
+console.log(providers); // ['jest', 'playwright', 'cypress', 'junit']
 ```
 
 ### `HttpClient`
 
-HTTP client for sending webhook requests with retry logic and authentication.
+HTTP client for webhook delivery with retry logic.
 
 #### Constructor
 
 ```typescript
-const httpClient = new HttpClient();
+new HttpClient()
 ```
 
 #### Methods
 
-##### `sendWebhook(report: CTRFReport, config: WebhookConfig): Promise<WebhookResponse>`
+##### `sendWebhook(report: UnifiedReport, config: WebhookConfig): Promise<WebhookResponse>`
 
-Sends a CTRF report to a webhook endpoint.
+Sends a unified report to a webhook endpoint.
 
 **Parameters:**
-- `report` (CTRFReport): The CTRF report to send
+- `report` (UnifiedReport): The unified report to send
 - `config` (WebhookConfig): Webhook configuration
 
-**Returns:** `Promise<WebhookResponse>` - Response details
+**Returns:** `Promise<WebhookResponse>` - Response from the webhook
 
 **Example:**
 ```typescript
-const response = await httpClient.sendWebhook(report, {
+import { HttpClient } from 'test-report-converter';
+
+const client = new HttpClient();
+const response = await client.sendWebhook(report, {
   url: 'https://api.example.com/webhook',
   method: 'POST',
-  authToken: 'Bearer token',
+  authToken: 'your-token',
   retries: 3
 });
-
-if (response.success) {
-  console.log('Webhook sent successfully');
-}
 ```
 
-## Type Definitions
+## Interfaces
+
+### `UnifiedReport`
+
+The main unified report structure.
+
+```typescript
+interface UnifiedReport {
+  id: string;
+  runId?: string;
+  framework: 'jest' | 'cypress' | 'playwright' | 'other';
+  frameworkVersion?: string;
+  toolVersion?: string;
+  stats: UnifiedTestStats;
+  suites: UnifiedTestSuite[];
+  coverage?: UnifiedCoverage;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+interface UnifiedTestStats {
+  total: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  pending?: number;
+  todo?: number;
+  timeout?: number;
+  interrupted?: number;
+  suites?: number;
+  duration: number;
+  startTime: string;
+  endTime?: string;
+}
+
+interface UnifiedTestSuite {
+  id: string;
+  name: string;
+  file?: string;
+  path?: string;
+  tests: UnifiedTestResult[];
+  duration?: number;
+}
+
+interface UnifiedTestResult {
+  id: string;
+  name: string;
+  fullName: string;
+  status: UnifiedTestStatus;
+  duration?: number;
+  startTime?: string;
+  endTime?: string;
+  tags?: string[];
+  assertions?: number;
+  results: UnifiedTestAttempt[];
+}
+
+type UnifiedTestStatus = 
+  | 'passed' 
+  | 'failed' 
+  | 'skipped' 
+  | 'pending' 
+  | 'todo' 
+  | 'timeout' 
+  | 'interrupted';
+
+interface UnifiedTestAttempt {
+  attemptNumber: number;
+  status: UnifiedTestStatus;
+  duration?: number;
+  startTime?: string;
+  errors?: UnifiedError[];
+}
+
+interface UnifiedError {
+  message: string;
+  stack?: string;
+  location?: {
+    file: string;
+    line: number;
+    column: number;
+  };
+  diff?: string;
+  snippet?: string;
+}
+```
 
 ### `ConvertOptions`
 
-Configuration options for test report conversion.
+Configuration options for conversion.
 
 ```typescript
 interface ConvertOptions {
-  input: string;           // Source report file path
-  output?: string;         // Output file path (optional)
-  provider: string;        // Test framework provider
-  stdout?: boolean;        // Output to console
-  webhook?: WebhookConfig; // Webhook configuration
+  input: string;           // Path to input test report file
+  output?: string;         // Path for output file (optional)
+  provider: string;        // Test framework provider name
+  stdout?: boolean;        // Output to console instead of file
+  webhook?: WebhookConfig; // Webhook configuration (optional)
 }
 ```
-
-### `CTRFReport`
-
-The main CTRF report structure.
-
-```typescript
-interface CTRFReport {
-  results: CTRFResults;
-}
-
-interface CTRFResults {
-  tool: CTRFTool;
-  summary: CTRFSummary;
-  tests: CTRFTest[];
-  environment?: CTRFEnvironment;
-  extra?: Record<string, unknown>;
-}
-```
-
-### `CTRFTest`
-
-Individual test result in CTRF format.
-
-```typescript
-interface CTRFTest {
-  name: string;           // Test name
-  status: TestStatus;     // Test result status
-  duration: number;       // Test duration in milliseconds
-  message?: string;       // Error message (if failed)
-  trace?: string;         // Stack trace (if failed)
-  rawStatus?: string;     // Original status from source
-  type?: string;          // Test type
-  filePath?: string;      // Source file path
-  retry?: number;         // Retry attempt number
-  flaky?: boolean;        // Flaky test indicator
-  suite?: string;         // Test suite name
-  tags?: string[];        // Test tags
-  meta?: Record<string, unknown>; // Additional metadata
-}
-```
-
-### `CTRFSummary`
-
-Test execution summary.
-
-```typescript
-interface CTRFSummary {
-  tests: number;    // Total number of tests
-  passed: number;   // Number of passed tests
-  failed: number;   // Number of failed tests
-  pending: number;  // Number of pending tests
-  skipped: number;  // Number of skipped tests
-  other: number;    // Number of other status tests
-  start: number;    // Start timestamp
-  stop: number;     // End timestamp
-}
-```
-
-### `TestStatus`
-
-Valid test status values.
-
-```typescript
-type TestStatus = 'passed' | 'failed' | 'skipped' | 'pending' | 'other';
-```
-
-## Provider System
-
-### `BaseProvider`
-
-Interface that all test framework providers must implement.
-
-```typescript
-interface BaseProvider {
-  validate(inputPath: string): Promise<boolean>;
-  convert(inputPath: string): Promise<CTRFReport>;
-}
-```
-
-### `PlaywrightProvider`
-
-Provider for converting Playwright JSON reports.
-
-#### Methods
-
-##### `validate(inputPath: string): Promise<boolean>`
-
-Validates that the input file is a valid Playwright report.
-
-##### `convert(inputPath: string): Promise<CTRFReport>`
-
-Converts a Playwright JSON report to CTRF format.
-
-**Supported Playwright Features:**
-- Test status mapping
-- Duration and retry information
-- Error messages and stack traces
-- File paths and line numbers
-- Test tags and annotations
-- Flaky test detection
-
-## Webhook Configuration
 
 ### `WebhookConfig`
 
@@ -263,213 +258,176 @@ Configuration for webhook delivery.
 
 ```typescript
 interface WebhookConfig {
-  url: string;                                    // Webhook URL
-  method?: 'POST' | 'PUT' | 'PATCH';             // HTTP method
-  headers?: Record<string, string>;               // Custom headers
-  authToken?: string;                             // Authentication token
-  authHeader?: string;                            // Auth header name
-  timeout?: number;                               // Request timeout (ms)
-  retries?: number;                               // Retry attempts
-  retryDelay?: number;                            // Retry delay (ms)
-  verifySSL?: boolean;                            // SSL verification
+  url: string;                           // Webhook URL
+  method?: 'POST' | 'PUT' | 'PATCH';     // HTTP method (default: POST)
+  headers?: Record<string, string>;      // Custom headers
+  authToken?: string;                    // Authentication token
+  authHeader?: string;                   // Custom auth header name
+  timeout?: number;                      // Request timeout in ms
+  retries?: number;                      // Number of retry attempts
+  retryDelay?: number;                   // Delay between retries in ms
+  verifySSL?: boolean;                   // Verify SSL certificates
 }
 ```
 
 ### `WebhookResponse`
 
-Response from webhook request.
+Response from webhook delivery.
 
 ```typescript
 interface WebhookResponse {
-  success: boolean;         // Request success status
-  status: number;           // HTTP status code
-  statusText: string;       // HTTP status text
-  data?: any;              // Response data
-  error?: string;          // Error message (if failed)
+  success: boolean;        // Whether the request succeeded
+  status: number;          // HTTP status code
+  statusText: string;      // HTTP status text
+  data?: any;             // Response data
+  error?: string;         // Error message if failed
 }
 ```
 
-### Authentication Methods
+## Provider Support
 
-#### Bearer Token
-```typescript
-{
-  authToken: 'Bearer your-token-here'
-}
-```
+### Supported Providers
 
-#### API Key
-```typescript
-{
-  authToken: 'your-api-key',
-  authHeader: 'X-API-Key'
-}
-```
+- **jest**: Jest test framework reports
+- **playwright**: Playwright test framework reports  
+- **cypress**: Cypress test framework reports
+- **junit**: JUnit XML format reports
 
-#### Custom Header
-```typescript
-{
-  authToken: 'custom-value',
-  authHeader: 'X-Custom-Auth'
-}
-```
+### Provider-Specific Notes
+
+#### Jest Provider
+- Supports Jest JSON reports
+- Includes coverage information when available
+- Maps Jest-specific statuses (todo, pending)
+
+#### Playwright Provider  
+- Supports Playwright JSON reporter output
+- Handles retry attempts and flaky tests
+- Includes project and browser information
+- Extracts runId when available
+
+#### Cypress Provider
+- Supports mochawesome JSON format
+- Includes basic test information
+- Maps Cypress-specific statuses
+
+#### JUnit Provider
+- Supports standard JUnit XML format
+- Handles both single testsuite and testsuites formats
+- Maps XML attributes to unified format
 
 ## Error Handling
 
-### Common Error Types
+### Common Errors
 
-#### File Not Found
+- **FileNotFoundError**: Input file doesn't exist
+- **InvalidProviderError**: Unsupported provider specified  
+- **InvalidFormatError**: Input file format incompatible with provider
+- **WebhookError**: Webhook delivery failed
+- **ValidationError**: Report data validation failed
+
+### Error Examples
+
 ```typescript
 try {
-  await convert({ input: './missing.json', provider: 'playwright' });
+  const report = await convert({
+    input: './results.json',
+    provider: 'playwright'
+  });
 } catch (error) {
-  console.error(error.message); // "Input file not found: ./missing.json"
-}
-```
-
-#### Invalid Provider
-```typescript
-try {
-  await convert({ input: './report.json', provider: 'invalid' });
-} catch (error) {
-  console.error(error.message); // "Unsupported provider: invalid"
-}
-```
-
-#### Webhook Failures
-Webhook failures are non-blocking and reported separately:
-
-```typescript
-await converter.convertAndSave({
-  input: './report.json',
-  provider: 'playwright',
-  output: './ctrf.json',
-  webhook: { url: 'https://invalid-url.com' }
-});
-
-// Output:
-// ❌ Webhook failed: Request failed with status 404
-// ✅ Successfully converted ./report.json to CTRF format
-```
-
-### Error Handling Best Practices
-
-1. **Always wrap convert calls in try-catch**:
-```typescript
-try {
-  const report = await convert(options);
-  console.log('Conversion successful');
-} catch (error) {
-  console.error('Conversion failed:', error.message);
-  process.exit(1);
-}
-```
-
-2. **Check webhook responses**:
-```typescript
-const response = await httpClient.sendWebhook(report, config);
-if (!response.success) {
-  console.warn('Webhook failed:', response.error);
-}
-```
-
-3. **Validate inputs before conversion**:
-```typescript
-import { existsSync } from 'fs';
-
-if (!existsSync(inputPath)) {
-  throw new Error(`Input file not found: ${inputPath}`);
-}
-```
-
-## Environment Detection
-
-The library automatically detects and includes environment information:
-
-### CI Environment
-- GitHub Actions
-- GitLab CI
-- Jenkins
-- Travis CI
-- CircleCI
-
-### Git Information
-- Repository URL
-- Branch name
-- Commit hash
-
-### System Information
-- Operating system
-- Node.js version
-- Architecture
-
-## Usage Examples
-
-### Basic CLI Wrapper
-```typescript
-import { convert } from 'test-report-ctrfer';
-
-async function convertReport(inputFile: string) {
-  try {
-    const report = await convert({
-      input: inputFile,
-      provider: 'playwright',
-      output: './ctrf-report.json'
-    });
-    
-    console.log(`✅ Converted ${report.results.summary.tests} tests`);
-    return report;
-  } catch (error) {
-    console.error('❌ Conversion failed:', error.message);
-    throw error;
+  if (error.message.includes('Input file not found')) {
+    console.error('File not found:', error.message);
+  } else if (error.message.includes('Unsupported provider')) {
+    console.error('Invalid provider:', error.message);
+  } else {
+    console.error('Conversion failed:', error.message);
   }
 }
+```
+
+## Examples
+
+### Basic File Conversion
+
+```typescript
+import { convert } from 'test-report-converter';
+
+// Convert Playwright results
+const report = await convert({
+  input: './playwright-results.json',
+  provider: 'playwright',
+  output: './unified-report.json'
+});
+
+console.log(`Converted ${report.stats.total} tests`);
 ```
 
 ### Webhook Integration
-```typescript
-import { convert } from 'test-report-ctrfer';
 
-async function sendTestResults(inputFile: string, webhookUrl: string) {
-  const report = await convert({
-    input: inputFile,
+```typescript
+import { convert } from 'test-report-converter';
+
+// Send results to webhook
+await convert({
+  input: './test-results.json',
+  provider: 'jest',
+  webhook: {
+    url: 'https://api.example.com/test-results',
+    method: 'POST',
+    authToken: 'Bearer your-token',
+    headers: {
+      'X-Team': 'qa',
+      'X-Environment': 'production'
+    },
+    retries: 3,
+    timeout: 30000
+  }
+});
+```
+
+### Advanced Usage with Error Handling
+
+```typescript
+import { Converter } from 'test-report-converter';
+
+const converter = new Converter();
+
+try {
+  // Check available providers
+  const providers = converter.getAvailableProviders();
+  console.log('Available providers:', providers);
+
+  // Convert with full configuration
+  await converter.convertAndSave({
+    input: './test-results.json',
     provider: 'playwright',
+    output: './unified-report.json',
     webhook: {
-      url: webhookUrl,
-      method: 'POST',
-      authToken: process.env.API_TOKEN,
-      retries: 3,
-      timeout: 30000,
-      headers: {
-        'X-Team': 'qa',
-        'X-Environment': process.env.NODE_ENV
-      }
+      url: 'https://webhook.example.com/reports',
+      authToken: 'your-api-token',
+      retries: 5,
+      retryDelay: 2000,
+      timeout: 60000,
+      verifySSL: false
     }
   });
-  
-  return report;
+
+  console.log('✅ Conversion and delivery completed');
+} catch (error) {
+  console.error('❌ Error:', error.message);
 }
 ```
 
-### Custom Provider Implementation
-```typescript
-import { BaseProvider, CTRFReport } from 'test-report-ctrfer';
+## TypeScript Support
 
-class CustomProvider implements BaseProvider {
-  async validate(inputPath: string): Promise<boolean> {
-    // Implement validation logic
-    return true;
-  }
-  
-  async convert(inputPath: string): Promise<CTRFReport> {
-    // Implement conversion logic
-    return {
-      results: {
-        tool: { name: 'custom-tool' },
-        summary: { /* ... */ },
-        tests: [ /* ... */ ]
-      }
-    };
-  }
-}
+The library is written in TypeScript and provides full type definitions. All interfaces and types are exported for use in TypeScript projects.
+
+```typescript
+import type { 
+  UnifiedReport, 
+  ConvertOptions, 
+  WebhookConfig,
+  UnifiedTestResult,
+  UnifiedTestStatus 
+} from 'test-report-converter';
 ``` 

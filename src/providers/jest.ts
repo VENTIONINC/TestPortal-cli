@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import { randomUUID } from 'crypto';
-import { UnifiedProvider } from '@/types/providers';
+import { BaseProvider } from '@/types/providers';
 import {
   UnifiedReport,
   UnifiedTestSuite,
@@ -16,7 +16,7 @@ import {
   JestTestStatus,
 } from '@/types/jest';
 
-export class JestProvider implements UnifiedProvider {
+export class JestProvider implements BaseProvider {
   public readonly name = 'jest';
 
   async validate(inputPath: string): Promise<boolean> {

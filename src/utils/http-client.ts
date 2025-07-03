@@ -1,4 +1,4 @@
-import { CTRFReport } from '@/types/ctrf';
+import { UnifiedReport } from '@/types/unified-report';
 import {
   WebhookConfig,
   WebhookResponse,
@@ -13,7 +13,7 @@ export class HttpClient {
   private defaultRetryDelay = 1000;
 
   async sendWebhook(
-    report: CTRFReport,
+    report: UnifiedReport,
     config: WebhookConfig
   ): Promise<WebhookResponse> {
     const retryConfig: WebhookRetryConfig = {
@@ -30,7 +30,7 @@ export class HttpClient {
   }
 
   private async sendRequest(
-    report: CTRFReport,
+    report: UnifiedReport,
     config: WebhookConfig
   ): Promise<WebhookResponse> {
     const url = config.url;
@@ -39,7 +39,7 @@ export class HttpClient {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': 'test-report-ctrfer/1.0.0',
+      'User-Agent': 'test-report-converter/1.0.0',
       ...config.headers,
     };
 

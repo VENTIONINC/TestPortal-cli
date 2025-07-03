@@ -2,10 +2,10 @@ import { PlaywrightProvider } from '@/providers/playwright';
 import { CypressProvider } from '@/providers/cypress';
 import { JestProvider } from '@/providers/jest';
 import { JunitProvider } from '@/providers/junit';
-import { UnifiedProvider } from '@/types/providers';
+import { BaseProvider } from '@/types/providers';
 
 export class ProviderRegistry {
-  private providers: Map<string, UnifiedProvider> = new Map();
+  private providers: Map<string, BaseProvider> = new Map();
 
   constructor() {
     this.registerDefaultProviders();
@@ -18,11 +18,11 @@ export class ProviderRegistry {
     this.registerProvider(new JunitProvider());
   }
 
-  registerProvider(provider: UnifiedProvider): void {
+  registerProvider(provider: BaseProvider): void {
     this.providers.set(provider.name.toLowerCase(), provider);
   }
 
-  getProvider(name: string): UnifiedProvider | undefined {
+  getProvider(name: string): BaseProvider | undefined {
     return this.providers.get(name.toLowerCase());
   }
 
