@@ -1,402 +1,349 @@
-# 🧪 Test Report CTRFER
+# 🧪 Test Report Converter
 
-[![npm version](https://badge.fury.io/js/test-report-ctrfer.svg)](https://badge.fury.io/js/test-report-ctrfer)
+[![npm version](https://badge.fury.io/js/test-report-converter.svg)](https://badge.fury.io/js/test-report-converter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/user/test-report-ctrfer/workflows/Tests/badge.svg)](https://github.com/user/test-report-ctrfer/actions)
+[![Tests](https://github.com/user/test-report-converter/workflows/Tests/badge.svg)](https://github.com/user/test-report-converter/actions)
 
-A powerful CLI tool and programmatic library for converting test reports from popular testing frameworks to [CTRF (Common Test Results Format)](https://ctrf.io). Supports both local file output and remote webhook delivery with comprehensive retry logic and authentication.
+A powerful CLI tool and programmatic library for converting test reports from popular testing frameworks to unified format. Supports both local file output and remote webhook delivery with comprehensive retry logic and authentication.
 
 ## ✨ Features
 
-- 🎯 **Multiple Framework Support**: Convert from Playwright (with more frameworks coming)
-- 🌐 **Remote Webhooks**: Send reports to remote servers with retry logic
-- 🔐 **Flexible Authentication**: Bearer tokens, API keys, custom headers
-- 📁 **Multiple Output Options**: File, stdout, webhook, or concurrent delivery
-- 🔧 **Programmatic API**: Use as a library in your Node.js applications
-- 🛡️ **Type-Safe**: Full TypeScript support with Zod validation
-- ⚡ **Fast & Reliable**: Efficient parsing with comprehensive error handling
-- 🧪 **Well-Tested**: 100% test coverage with comprehensive test suite
+- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit
+- 📊 **Unified format**: Consistent structure across all frameworks
+- 🚀 **CLI & Programmatic**: Use as command-line tool or Node.js library
+- 🌐 **Webhook delivery**: Send reports to remote endpoints with retry logic
+- 🔒 **Authentication**: Support for Bearer tokens and custom headers
+- ⚡ **Fast & reliable**: Built with TypeScript for type safety
+- 📝 **Detailed output**: Comprehensive test results with error details
 
-## 📦 Installation
+## 🚀 Installation
 
-### Global CLI Installation
+### Global Installation (CLI)
+
 ```bash
-npm install -g test-report-ctrfer
+npm install -g test-report-converter
 ```
 
-### Library Installation
+### Local Installation (Library)
+
 ```bash
-npm install test-report-ctrfer
+npm install test-report-converter
 ```
 
-## 🚀 Quick Start
+## 📖 Usage
 
-### CLI Usage
+### CLI Examples
+
 ```bash
-# Basic conversion
-ctrf-convert -i playwright-results.json -t playwright -o ctrf-report.json
+# Convert Playwright results to unified format
+test-convert -i playwright-results.json -t playwright -o unified-report.json
 
-# Send to webhook
-ctrf-convert -i playwright-results.json -t playwright --webhook https://api.example.com/reports
+# Send report directly to webhook
+test-convert -i playwright-results.json -t playwright --webhook https://api.example.com/reports
 
 # Output to console
-ctrf-convert -i playwright-results.json -t playwright --stdout
+test-convert -i playwright-results.json -t playwright --stdout
 ```
 
 ### Programmatic Usage
+
 ```typescript
-import { convert } from 'test-report-ctrfer';
+import { convert } from 'test-report-converter';
 
 const report = await convert({
   input: './playwright-results.json',
   provider: 'playwright',
-  output: './ctrf-report.json'
+  output: './unified-report.json'
 });
 
-console.log(`Converted ${report.results.summary.tests} tests`);
+console.log('Conversion complete!', report);
 ```
 
-## 📋 CLI Reference
+## 🛠️ CLI Options
 
-### Required Options
-- `-i, --input <path>` - Path to source test report file
-- `-t, --type <provider>` - Test framework provider (playwright)
-
-### Output Options
-- `-o, --output <path>` - Write CTRF report to file
-- `--stdout` - Output report to console
+- `-i, --input <path>` - Path to source report file (required)
+- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit (required)
+- `-o, --output <path>` - Write unified report to file
+- `--stdout` - Output to console instead of file
+- `--webhook <url>` - Send report to webhook URL
 
 ### Webhook Options
-- `--webhook <url>` - Send report to webhook URL
-- `--method <method>` - HTTP method (POST, PUT, PATCH) [default: POST]
+
 - `--headers <json>` - Custom headers as JSON string
 - `--auth-token <token>` - Authentication token
-- `--auth-header <name>` - Custom auth header name [default: Authorization]
+- `--auth-header <name>` - Custom auth header name (default: Authorization)
+- `--method <method>` - HTTP method: POST, PUT, PATCH (default: POST)
+- `--timeout <ms>` - Request timeout in milliseconds (default: 30000)
+- `--retries <count>` - Number of retry attempts (default: 3)
+- `--retry-delay <ms>` - Delay between retries in milliseconds (default: 1000)
+- `--verify-ssl` / `--no-verify-ssl` - SSL certificate verification
 
-### Network Options
-- `--timeout <ms>` - Request timeout in milliseconds [default: 30000]
-- `--retries <count>` - Number of retry attempts [default: 3]
-- `--retry-delay <ms>` - Delay between retries [default: 1000]
-- `--verify-ssl` - Verify SSL certificates [default: true]
-- `--no-verify-ssl` - Skip SSL certificate verification
-
-### Utility Options
-- `-V, --version` - Output version number
-- `-h, --help` - Display help information
-
-## 🌐 Webhook Integration
-
-### Basic Webhook
-```bash
-ctrf-convert -i results.json -t playwright \
-  --webhook https://api.example.com/test-reports
-```
+## 🔗 Advanced Webhook Usage
 
 ### With Authentication
+
 ```bash
-ctrf-convert -i results.json -t playwright \
-  --webhook https://api.example.com/test-reports \
-  --auth-token "Bearer your-token-here"
+test-convert -i results.json -t playwright \
+  --webhook https://api.example.com/reports \
+  --auth-token "your-api-token" \
+  --method POST
 ```
 
-### Custom Headers and Method
+### With Custom Headers
+
 ```bash
-ctrf-convert -i results.json -t playwright \
-  --webhook https://api.example.com/test-reports \
-  --method PUT \
-  --headers '{"Content-Type": "application/json", "X-Team": "qa"}' \
-  --auth-token "your-api-key" \
-  --auth-header "X-API-Key"
+test-convert -i results.json -t playwright \
+  --webhook https://api.example.com/reports \
+  --headers '{"X-API-Key": "your-key", "X-Team": "qa"}'
 ```
 
-### Advanced Configuration
+### With Retry Configuration
+
 ```bash
-ctrf-convert -i results.json -t playwright \
-  --webhook https://api.example.com/test-reports \
+test-convert -i results.json -t playwright \
+  --webhook https://api.example.com/reports \
   --retries 5 \
   --retry-delay 2000 \
-  --timeout 60000 \
+  --timeout 60000
+```
+
+### Custom Authentication Header
+
+```bash
+test-convert -i results.json -t playwright \
+  --webhook https://api.example.com/reports \
+  --auth-token "your-token" \
+  --auth-header "X-API-Token"
+```
+
+### Skip SSL Verification
+
+```bash
+test-convert -i results.json -t playwright \
+  --webhook https://internal-api.company.com/reports \
   --no-verify-ssl
 ```
 
-### Concurrent File and Webhook
-```bash
-ctrf-convert -i results.json -t playwright \
-  --output ./report.json \
-  --webhook https://api.example.com/test-reports \
-  --auth-token "Bearer token"
-```
-
-## 🔧 Programmatic API
+## 💻 Programmatic API
 
 ### Basic Conversion
-```typescript
-import { convert } from 'test-report-ctrfer';
 
-// Simple file conversion
+```typescript
+import { convert } from 'test-report-converter';
+
 const report = await convert({
-  input: './playwright-results.json',
+  input: './test-results.json',
   provider: 'playwright',
-  output: './ctrf-report.json'
+  output: './unified-report.json'
 });
 ```
 
-### Webhook Integration
-```typescript
-import { convert } from 'test-report-ctrfer';
+### With Webhook
 
-// Send to webhook with authentication
+```typescript
+import { convert } from 'test-report-converter';
+
 const report = await convert({
-  input: './playwright-results.json',
+  input: './test-results.json',
   provider: 'playwright',
   webhook: {
-    url: 'https://api.example.com/test-reports',
-    method: 'POST',
-    authToken: 'Bearer your-token',
-    timeout: 30000,
-    retries: 3,
-    retryDelay: 1000,
-    verifySSL: true,
-    headers: {
-      'X-Team': 'qa',
-      'X-Environment': 'production'
-    }
+    url: 'https://api.example.com/reports',
+    authToken: 'your-api-token',
+    retries: 3
   }
 });
 ```
 
-### Advanced Configuration
-```typescript
-import { convert, Converter } from 'test-report-ctrfer';
+### Advanced Usage
 
-// Using the Converter class directly
+```typescript
+import { convert, Converter } from 'test-report-converter';
+
 const converter = new Converter();
 
-// Get available providers
-const providers = converter.getAvailableProviders();
-console.log('Supported providers:', providers);
+// Check available providers
+console.log(converter.getAvailableProviders()); // ['jest', 'playwright', 'cypress', 'junit']
 
 // Convert with full options
 await converter.convertAndSave({
   input: './test-results.json',
   provider: 'playwright',
-  output: './ctrf-report.json',
-  stdout: false,
+  output: './unified-report.json',
   webhook: {
-    url: 'https://webhook.site/unique-id',
-    method: 'POST',
-    authToken: 'your-token',
-    authHeader: 'X-API-Key',
+    url: 'https://api.example.com/webhook',
+    method: 'PUT',
+    timeout: 45000,
     retries: 5,
     retryDelay: 2000,
-    timeout: 60000
+    headers: {
+      'X-API-Key': 'your-key'
+    }
   }
 });
 ```
 
-## 🎭 Supported Test Frameworks
+## 📋 Provider Support
 
-### Playwright
-- **Versions**: v1.43+
-- **File Format**: JSON reports from `playwright test --reporter=json`
-- **Features**: 
-  - Test status mapping (passed/failed/skipped/timedOut/interrupted)
-  - Duration and retry information
-  - Error messages and stack traces
-  - File paths and line numbers
-  - Test tags and annotations
-  - Flaky test detection
+### Status Mapping
 
-#### Playwright Status Mapping
-| Playwright Status | CTRF Status |
-|------------------|-------------|
-| `passed` | `passed` |
-| `failed` | `failed` |
-| `skipped` | `skipped` |
-| `timedOut` | `failed` |
-| `interrupted` | `other` |
+| Framework | Unified Status | Notes |
+|-----------|----------------|-------|
+| Jest | passed, failed, pending, todo | Standard Jest statuses |
+| Playwright | passed, failed, skipped, timeout, interrupted | Includes flaky test handling |
+| Cypress | passed, failed, pending | Basic Cypress statuses |
+| JUnit | passed, failed, skipped | XML format support |
 
-## 📊 CTRF Output Format
+## 📊 Unified Output Format
 
-The tool generates CTRF (Common Test Results Format) compliant reports:
+The tool generates unified format reports with consistent structure:
 
 ```json
 {
-  "results": {
-    "tool": {
-      "name": "playwright"
-    },
-    "summary": {
-      "tests": 10,
-      "passed": 8,
-      "failed": 1,
-      "pending": 0,
-      "skipped": 1,
-      "other": 0,
-      "start": 1642678900000,
-      "stop": 1642679200000
-    },
-    "tests": [
-      {
-        "name": "should load homepage",
-        "status": "passed",
-        "duration": 1250,
-        "filePath": "tests/homepage.spec.ts",
-        "retry": 0,
-        "flaky": false
-      }
-    ],
-    "environment": {
-      "appName": "MyApp",
-      "buildName": "main-branch",
-      "buildNumber": "123"
+  "id": "unique-report-id",
+  "runId": "optional-run-id",
+  "framework": "playwright",
+  "frameworkVersion": "1.40.0",
+  "stats": {
+    "total": 10,
+    "passed": 8,
+    "failed": 1,
+    "skipped": 1,
+    "duration": 45000,
+    "startTime": "2024-01-01T10:00:00.000Z",
+    "endTime": "2024-01-01T10:00:45.000Z"
+  },
+  "suites": [
+    {
+      "id": "suite-id",
+      "name": "Login Tests",
+      "file": "tests/login.spec.ts",
+      "tests": [
+        {
+          "id": "test-id",
+          "name": "should login with valid credentials",
+          "status": "passed",
+          "duration": 1500,
+          "results": [
+            {
+              "attemptNumber": 1,
+              "status": "passed",
+              "duration": 1500,
+              "startTime": "2024-01-01T10:00:00.000Z"
+            }
+          ]
+        }
+      ]
     }
-  }
+  ],
+  "createdAt": "2024-01-01T10:00:45.000Z"
 }
 ```
 
-## 🛡️ Error Handling
+## 🔧 Framework Specific Notes
 
-### CLI Error Handling
-- Input file validation
-- Provider support validation
-- JSON parsing error reporting
-- Network error handling with retries
-- Graceful webhook failure handling
+### Playwright
+- Supports retry attempts and flaky test detection
+- Includes project information and browser details
+- Maps unexpected status to failed
 
-### Webhook Error Handling
-- **Retry Logic**: Exponential backoff with configurable attempts
-- **Timeout Handling**: Configurable request timeouts
-- **SSL Verification**: Optional SSL certificate validation
-- **Error Isolation**: Webhook failures don't prevent file output
-- **Status Reporting**: Clear success/failure messaging
+### Jest
+- Includes coverage information when available
+- Maps todo tests to todo status
+- Aggregates assertion counts
 
-### Error Examples
+### Cypress
+- Supports mochawesome report format
+- Includes screenshot and video references
+- Maps pending tests appropriately
+
+### JUnit
+- Supports both single testsuite and testsuites formats
+- Maps errors to failed status
+- Handles skipped tests correctly
+
+## 📝 Example Output
+
 ```bash
-# File not found
-❌ Error: Input file not found: ./missing-file.json
-
-# Invalid provider
-❌ Error: Unsupported provider: invalid-provider
-
-# Webhook failure (non-blocking)
-❌ Webhook failed: Request timed out after 30000ms
-✅ Successfully converted ./results.json to CTRF format
+✅ Successfully converted ./results.json to unified format
+✅ Successfully sent to webhook: https://api.example.com/reports
 ```
 
-## 🧪 Testing
-
-### Running Tests
-```bash
-npm test                 # Run all tests
-npm run test:watch      # Run tests in watch mode
-npm run test:coverage   # Run tests with coverage
-```
-
-### Test Coverage
-- Unit tests for all core functionality
-- Integration tests with real test reports
-- Webhook integration tests with mocked HTTP
-- Error scenario testing
-- Edge case validation
-
-## 🚀 CI/CD Integration Examples
+## 🚀 CI/CD Integration
 
 ### GitHub Actions
+
 ```yaml
-- name: Run tests and send results
+- name: Convert Test Results
   run: |
-    npm test -- --reporter=json --outputFile=test-results.json
-    npx test-report-ctrfer -i test-results.json -t playwright \
-      --webhook ${{ secrets.TEST_RESULTS_WEBHOOK }} \
-      --auth-token "${{ secrets.API_TOKEN }}" \
-      --headers '{"X-GitHub-Run": "${{ github.run_id }}"}'
+    npx test-report-converter -i test-results.json -t playwright \
+      --webhook ${{ secrets.WEBHOOK_URL }} \
+      --auth-token ${{ secrets.API_TOKEN }}
+```
+
+### With File Output
+
+```yaml
+- name: Convert and Save Test Results
+  run: |
+    npx test-report-converter -i test-results.json -t playwright \
+      --output artifacts/unified-report.json
+
+- name: Upload Test Results
+  uses: actions/upload-artifact@v3
+  with:
+    name: test-results
+    path: artifacts/unified-report.json
 ```
 
 ### GitLab CI
+
 ```yaml
-test_and_report:
+test_report_conversion:
   script:
-    - npm test -- --reporter=json --outputFile=test-results.json
-    - npx test-report-ctrfer -i test-results.json -t playwright 
-        --webhook $TEST_WEBHOOK_URL 
+    - npx test-report-converter -i test-results.json -t playwright \
+        --webhook $WEBHOOK_URL \
         --auth-token $API_TOKEN
-        --output artifacts/ctrf-report.json
-  artifacts:
-    paths:
-      - artifacts/ctrf-report.json
 ```
 
-### Jenkins Pipeline
-```groovy
-pipeline {
-  stages {
-    stage('Test & Report') {
-      steps {
-        sh 'npm test -- --reporter=json --outputFile=test-results.json'
-        sh '''
-          npx test-report-ctrfer -i test-results.json -t playwright \
-            --webhook ${env.WEBHOOK_URL} \
-            --auth-token ${env.API_TOKEN} \
-            --headers '{"X-Build": "${env.BUILD_NUMBER}"}'
-        '''
-      }
-    }
-  }
-}
-```
+## 🛠️ Development
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
 ```bash
-git clone https://github.com/user/test-report-ctrfer.git
-cd test-report-ctrfer
+git clone https://github.com/user/test-report-converter.git
+cd test-report-converter
 npm install
 npm run build
 npm test
 ```
 
-### Adding New Providers
-1. Create provider class implementing `BaseProvider`
-2. Add provider to `ProviderRegistry`
-3. Create comprehensive tests
-4. Update documentation
+## 📋 Requirements
 
-## 📝 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for release history.
+- Node.js >= 18.0.0
+- TypeScript for development
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-**Q: "Module not found" errors**
-A: Ensure you're using Node.js 14+ and have installed dependencies with `npm install`
+1. **File not found**: Ensure the input file path is correct
+2. **Invalid format**: Verify the provider type matches your test framework
+3. **Webhook failures**: Check network connectivity and authentication
+4. **SSL errors**: Use `--no-verify-ssl` for internal endpoints (not recommended for production)
 
-**Q: Webhook timeouts**
-A: Increase timeout with `--timeout 60000` or check network connectivity
+## 🤝 Contributing
 
-**Q: SSL certificate errors**
-A: Use `--no-verify-ssl` for development or ensure valid certificates
-
-**Q: Authentication failures**
-A: Verify token format and use correct header with `--auth-header`
-
-### Getting Help
-- [Create an issue](https://github.com/user/test-report-ctrfer/issues)
-- [View existing issues](https://github.com/user/test-report-ctrfer/issues)
-- [Check documentation](https://github.com/user/test-report-ctrfer/wiki)
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- [Create an issue](https://github.com/user/test-report-converter/issues)
+- [View existing issues](https://github.com/user/test-report-converter/issues)
+- [Check documentation](https://github.com/user/test-report-converter/wiki)
 
 ## 🙏 Acknowledgments
 
-- [CTRF](https://ctrf.io) - Common Test Results Format specification
-- [Playwright](https://playwright.dev) - Web testing framework
-- [Commander.js](https://github.com/tj/commander.js) - CLI framework
-- [Zod](https://github.com/colinhacks/zod) - TypeScript schema validation
+- TypeScript community for excellent tooling
+- Test framework maintainers for consistent reporting formats

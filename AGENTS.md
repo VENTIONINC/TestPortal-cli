@@ -1,7 +1,7 @@
 # AI Development Guidelines
 
 This project is a Node.js CLI and TypeScript library for converting test reports
-into [CTRF](https://ctrf.io) format.
+into unified format.
 
 ## Setup
 - Requires **Node.js v18** or newer.

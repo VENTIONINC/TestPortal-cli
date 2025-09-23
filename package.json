@@ -1,10 +1,10 @@
 {
-  "name": "test-report-ctrfer",
-  "version": "1.0.0-alpha.1",
-  "description": "A lightweight Node.js CLI utility that converts test reports from popular frameworks to CTRF format",
+  "name": "test-report-converter",
+  "version": "1.0.0-alpha.1", 
+  "description": "A lightweight Node.js CLI utility that converts test reports from popular frameworks to unified format",
   "main": "dist/index.js",
   "bin": {
-    "ctrf-convert": "dist/cli.js"
+    "test-convert": "dist/cli.js"
   },
   "files": [
     "dist/**/*",
@@ -28,12 +28,12 @@
   "keywords": [
     "test",
     "testing",
-    "ctrf",
     "playwright",
     "junit",
     "cli",
     "converter",
-    "test-results"
+    "test-results",
+    "unified"
   ],
   "repository": {
     "type": "git",
@@ -61,8 +61,10 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
+    "@types/xml2js": "^0.4.14",
     "axios": "^1.10.0",
     "commander": "^11.1.0",
+    "xml2js": "^0.6.2",
     "zod": "^3.22.4"
   }
 }

@@ -1,0 +1,78 @@
+{
+  "id": "58effdff-463e-4ebe-86b6-3c8c4200d40b",
+  "runId": "MSA_NIGHTLY_AUTOMATED_TEST_RUN_msa-nightly-group-5-run-11-06-2025-07:52:24",
+  "framework": "playwright",
+  "frameworkVersion": "1.49.1",
+  "toolVersion": "1.49.1",
+  "stats": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "pending": 0,
+    "timeout": 0,
+    "interrupted": 0,
+    "suites": 1,
+    "duration": 265325.022,
+    "startTime": "2025-06-11T07:52:36.661Z",
+    "endTime": "2025-06-11T07:57:01.986Z"
+  },
+  "suites": [
+    {
+      "id": "a0e231d5-e996-47c9-b752-e58dc33c809f",
+      "name": "rn-monolith/ui/policy.amend.0sdr.0lg.spec.ts",
+      "file": "rn-monolith/ui/policy.amend.0sdr.0lg.spec.ts",
+      "tests": [
+        {
+          "id": "cd8eedce-dd2e-4b14-9928-0dd029e6d00b",
+          "name": "<C8306> <REN-8430> Amend policy for lg coverage month 0 for completed policy @msa-nightly-all @msa-nightly-group-5",
+          "fullName": "default › <C8306> <REN-8430> Amend policy for lg coverage month 0 for completed policy @msa-nightly-all @msa-nightly-group-5",
+          "status": "failed",
+          "duration": 236552,
+          "startTime": "2025-06-11T07:52:53.748Z",
+          "endTime": "2025-06-11T07:56:55.136Z",
+          "tags": [
+            "msa-nightly-all",
+            "msa-nightly-group-5"
+          ],
+          "results": [
+            {
+              "attemptNumber": 1,
+              "status": "failed",
+              "duration": 229856,
+              "startTime": "2025-06-11T07:52:53.748Z",
+              "errors": [
+                {
+                  "message": "Error: should display correct refunded amount\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1539\u001b[39m\nReceived: \u001b[31mNaN\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate\n\n\u001b[0m \u001b[90m 87 |\u001b[39m   \u001b[36mconst\u001b[39m refundedAmount \u001b[33m=\u001b[39m quoteBeforeAmendment \u001b[33m-\u001b[39m quoteAfterAmendment\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 89 |\u001b[39m   \u001b[36mawait\u001b[39m expect\n \u001b[90m    |\u001b[39m   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 90 |\u001b[39m     \u001b[33m.\u001b[39mpoll(applicationPage\u001b[33m.\u001b[39mgetSyncedTotalRefund()\u001b[33m,\u001b[39m {\n \u001b[90m 91 |\u001b[39m       message\u001b[33m:\u001b[39m \u001b[32m'should display correct refunded amount'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 92 |\u001b[39m       intervals\u001b[33m:\u001b[39m \u001b[33mEACH_THREE_SEC\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n    at /function/tests/rn-monolith/ui/policy.amend.0sdr.0lg.spec.ts:89:3",
+                  "location": {
+                    "file": "/function/tests/rn-monolith/ui/policy.amend.0sdr.0lg.spec.ts",
+                    "line": 89,
+                    "column": 3
+                  }
+                }
+              ]
+            },
+            {
+              "attemptNumber": 2,
+              "status": "failed",
+              "duration": 6696,
+              "startTime": "2025-06-11T07:56:55.136Z",
+              "errors": [
+                {
+                  "message": "Error: Error MFA token\n\n   at ../api/common/auth0/services/auth0.api.ts:84\n\n\u001b[0m \u001b[90m 82 |\u001b[39m\n \u001b[90m 83 |\u001b[39m     \u001b[36mif\u001b[39m (response\u001b[33m.\u001b[39mstatus \u001b[33m!=\u001b[39m \u001b[35m200\u001b[39m \u001b[33m||\u001b[39m response\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39moob_code \u001b[33m==\u001b[39m undefined) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 84 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Error MFA token'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 85 |\u001b[39m     }\n \u001b[90m 86 |\u001b[39m\n \u001b[90m 87 |\u001b[39m     \u001b[36mreturn\u001b[39m response\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39moob_code\u001b[33m;\u001b[39m\u001b[0m\n    at Auth0Api.triggerMfaEmail (/function/api/common/auth0/services/auth0.api.ts:84:13)\n    at UserApi.authenticateUser (/function/api/common/users/v1/services/user.api.ts:139:21)\n    at SelfServeInviteRenterApiSteps.loginAndInviteRenter (/function/steps/op-self-serve/invite.renter.api.steps.ts:39:33)\n    at MonoSendInviteApiSteps.landlordInvitesRenter (/function/steps/surety/monolith/api/send.invite.ml.api.steps.ts:25:5)\n    at /function/fixtures/helpers/status.updater.ts:286:5\n    at runInviteSent (/function/fixtures/helpers/status.updater.ts:249:3)\n    at Object.application (/function/fixtures/application.modeling.ts:446:9)",
+                  "location": {
+                    "file": "/function/api/common/auth0/services/auth0.api.ts",
+                    "line": 84,
+                    "column": 13
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "duration": 236552
+    }
+  ],
+  "createdAt": "2025-07-02T13:12:41.870Z"
+}

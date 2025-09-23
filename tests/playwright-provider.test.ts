@@ -50,7 +50,7 @@ describe('PlaywrightProvider', () => {
   });
 
   describe('convert', () => {
-    it('should convert basic playwright report to CTRF', async () => {
+    it('should convert basic playwright report to unified report', async () => {
       const playwrightReport = {
         config: {
           version: '1.43.0',
@@ -89,14 +89,15 @@ describe('PlaywrightProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(playwrightReport), 'utf8');
 
-      const ctrfReport = await provider.convert(testFile);
+      const unifiedReport = await provider.convert(testFile);
 
-      expect(ctrfReport.results.tool.name).toBe('playwright');
-      expect(ctrfReport.results.tool.version).toBe('1.43.0');
-      expect(ctrfReport.results.tests).toHaveLength(1);
-      expect(ctrfReport.results.tests[0]?.name).toBe('should pass');
-      expect(ctrfReport.results.tests[0]?.status).toBe('passed');
-      expect(ctrfReport.results.tests[0]?.duration).toBe(1000);
+      expect(unifiedReport.framework).toBe('playwright');
+      expect(unifiedReport.frameworkVersion).toBe('1.43.0');
+      expect(unifiedReport.suites).toHaveLength(1);
+      expect(unifiedReport.suites[0]?.tests).toHaveLength(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('should pass');
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
+      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(1000);
 
       await fs.unlink(testFile);
       await fs.rmdir(testDataDir);

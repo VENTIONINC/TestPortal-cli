@@ -11,8 +11,10 @@ async function main(): Promise<void> {
   const converter = new Converter();
 
   program
-    .name('ctrf-convert')
-    .description('Convert test reports from popular frameworks to CTRF format')
+    .name('test-convert')
+    .description(
+      'Convert test reports from popular frameworks to unified format'
+    )
     .version('1.0.0-alpha.1');
 
   program
@@ -84,7 +86,7 @@ async function main(): Promise<void> {
 
         if (!options.stdout && !options.output) {
           console.log(
-            `✅ Successfully converted ${options.input} to CTRF format`
+            `✅ Successfully converted ${options.input} to unified format`
           );
         }
       } catch (error) {
