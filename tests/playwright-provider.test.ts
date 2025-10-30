@@ -26,7 +26,7 @@ describe('PlaywrightProvider', () => {
       expect(isValid).toBe(true);
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject invalid playwright report', async () => {
@@ -40,7 +40,7 @@ describe('PlaywrightProvider', () => {
       expect(isValid).toBe(false);
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject non-existent file', async () => {
@@ -58,23 +58,34 @@ describe('PlaywrightProvider', () => {
         suites: [
           {
             title: 'Test Suite',
-            tests: [
+            file: 'test.spec.ts',
+            line: 1,
+            column: 1,
+            specs: [
               {
                 title: 'should pass',
-                status: 'passed',
-                results: [
+                ok: true,
+                tags: [],
+                id: 'test-1',
+                file: 'test.spec.ts',
+                line: 5,
+                column: 3,
+                tests: [
                   {
-                    duration: 1000,
+                    timeout: 30000,
+                    expectedStatus: 'passed',
                     status: 'passed',
-                    retry: 0,
-                    startTime: '2024-01-01T00:00:00.000Z',
+                    results: [
+                      {
+                        workerIndex: 0,
+                        status: 'passed',
+                        duration: 1000,
+                        retry: 0,
+                        startTime: '2024-01-01T00:00:00.000Z',
+                      },
+                    ],
                   },
                 ],
-                location: {
-                  file: 'test.spec.ts',
-                  line: 1,
-                  column: 1,
-                },
               },
             ],
           },
@@ -100,7 +111,7 @@ describe('PlaywrightProvider', () => {
       expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(1000);
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
   });
 });
