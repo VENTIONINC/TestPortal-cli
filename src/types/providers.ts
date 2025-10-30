@@ -19,4 +19,9 @@ export interface ProviderRegistry {
   [key: string]: BaseProvider;
 }
 
-export type SupportedProvider = 'playwright' | 'junit' | 'jest' | 'mocha';
+export type SupportedProvider =
+  | 'playwright'
+  | 'junit'
+  | 'jest'
+  | 'mocha'
+  | 'vitest';

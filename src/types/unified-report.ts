@@ -134,7 +134,14 @@ export type UnifiedCoverage = z.infer<typeof UnifiedCoverageSchema>;
 export const UnifiedReportSchema = z.object({
   id: z.string(),
   runId: z.string().optional(),
-  framework: z.enum(['jest', 'cypress', 'playwright', 'junit', 'other']),
+  framework: z.enum([
+    'jest',
+    'cypress',
+    'playwright',
+    'junit',
+    'vitest',
+    'other',
+  ]),
   frameworkVersion: z.string().optional(),
   toolVersion: z.string().optional(),
   stats: UnifiedTestStatsSchema,
