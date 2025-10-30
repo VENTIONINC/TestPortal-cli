@@ -14,6 +14,7 @@ const mockedAxios = axios as jest.MockedFunction<typeof axios>;
 describe('HttpClient', () => {
   let httpClient: HttpClient;
   let mockReport: UnifiedReport;
+  const originalEnv = process.env;
 
   beforeEach(() => {
     httpClient = new HttpClient();
@@ -61,10 +62,17 @@ describe('HttpClient', () => {
       },
     };
     jest.clearAllMocks();
+    // Reset environment variables
+    process.env = { ...originalEnv };
+    delete process.env.TEST_PORTAL_API_KEY;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   describe('sendWebhook', () => {
-    it('should send successful webhook request', async () => {
+    it('should send successful webhook request with multipart/form-data', async () => {
       const mockResponse = {
         status: 200,
         statusText: 'OK',
@@ -82,17 +90,25 @@ describe('HttpClient', () => {
       expect(result.success).toBe(true);
       expect(result.status).toBe(200);
       expect(result.data).toEqual({ success: true });
-      expect(mockedAxios).toHaveBeenCalledWith(
-        expect.objectContaining({
-          method: 'post',
-          url: 'https://example.com/webhook',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'User-Agent': 'test-report-converter/1.0.0',
-          }),
-          data: mockReport,
-        })
-      );
+
+      const call = mockedAxios.mock.calls[0]?.[0] as any;
+
+      expect(call).toMatchObject({
+        method: 'post',
+        url: 'https://example.com/webhook',
+      });
+
+      // Verify headers contain User-Agent
+      expect(call?.headers?.['User-Agent']).toBe('test-report-converter/1.0.0');
+
+      // Verify Content-Type header includes multipart/form-data (set by FormData.getHeaders())
+      const contentType = call?.headers?.['content-type'];
+      expect(contentType).toBeDefined();
+      expect(contentType).toContain('multipart/form-data');
+
+      // Verify data is FormData
+      expect(call?.data).toBeDefined();
+      expect(call?.data.constructor.name).toBe('FormData');
     });
 
     it('should handle failed webhook request', async () => {
@@ -115,7 +131,7 @@ describe('HttpClient', () => {
       expect(result.error).toBe('HTTP 500: Internal Server Error');
     });
 
-    it('should add authentication headers', async () => {
+    it('should add X-API-Key header from environment variable', async () => {
       const mockResponse = {
         status: 200,
         statusText: 'OK',
@@ -124,9 +140,11 @@ describe('HttpClient', () => {
 
       mockedAxios.mockResolvedValueOnce(mockResponse);
 
+      // Set environment variable
+      process.env.TEST_PORTAL_API_KEY = 'test-api-key-123';
+
       const config: WebhookConfig = {
         url: 'https://example.com/webhook',
-        authToken: 'my-token',
       };
 
       await httpClient.sendWebhook(mockReport, config);
@@ -134,13 +152,13 @@ describe('HttpClient', () => {
       expect(mockedAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: expect.objectContaining({
-            Authorization: 'Bearer my-token',
+            'X-API-Key': 'test-api-key-123',
           }),
         })
       );
     });
 
-    it('should use custom auth header', async () => {
+    it('should not add X-API-Key header when environment variable is not set', async () => {
       const mockResponse = {
         status: 200,
         statusText: 'OK',
@@ -151,19 +169,12 @@ describe('HttpClient', () => {
 
       const config: WebhookConfig = {
         url: 'https://example.com/webhook',
-        authToken: 'my-api-key',
-        authHeader: 'X-API-Key',
       };
 
       await httpClient.sendWebhook(mockReport, config);
 
-      expect(mockedAxios).toHaveBeenCalledWith(
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'X-API-Key': 'my-api-key',
-          }),
-        })
-      );
+      const call = mockedAxios.mock.calls[0]?.[0] as any;
+      expect(call?.headers?.['X-API-Key']).toBeUndefined();
     });
 
     it('should retry on failure', async () => {

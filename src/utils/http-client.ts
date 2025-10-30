@@ -3,9 +3,9 @@ import {
   WebhookConfig,
   WebhookResponse,
   WebhookRetryConfig,
-  WebhookAuthConfig,
 } from '@/types/webhook';
 import axios, { AxiosResponse, AxiosError } from 'axios';
+import FormData from 'form-data';
 
 export class HttpClient {
   private defaultTimeout = 30000;
@@ -37,19 +37,31 @@ export class HttpClient {
     const method = config.method || 'POST';
     const timeout = config.timeout ?? this.defaultTimeout;
 
+    // Create FormData and append the report as a JSON file
+    const formData = new FormData();
+    const reportJson = JSON.stringify(report, null, 2);
+    formData.append('report', reportJson, {
+      filename: 'ctrf-report.json',
+      contentType: 'application/json',
+    });
+
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       'User-Agent': 'test-report-converter/1.0.0',
+      ...formData.getHeaders(), // This adds the correct Content-Type with boundary
       ...config.headers,
     };
 
-    this.addAuthentication(headers, config);
+    // Add X-API-Key header from environment variable if present
+    const apiKey = process.env.TEST_PORTAL_API_KEY;
+    if (apiKey) {
+      headers['X-API-Key'] = apiKey;
+    }
 
     try {
       const response: AxiosResponse = await axios({
         method: method.toLowerCase(),
         url,
-        data: report,
+        data: formData,
         headers,
         timeout,
         validateStatus: () => true,
@@ -111,23 +123,6 @@ export class HttpClient {
         error:
           error instanceof Error ? error.message : 'An unknown error occurred',
       };
-    }
-  }
-
-  private addAuthentication(
-    headers: Record<string, string>,
-    config: WebhookConfig
-  ): void {
-    if (config.authToken) {
-      const headerName = config.authHeader || 'Authorization';
-
-      if (config.authHeader && config.authHeader !== 'Authorization') {
-        headers[config.authHeader] = config.authToken;
-      } else {
-        headers.Authorization = config.authToken.startsWith('Bearer ')
-          ? config.authToken
-          : `Bearer ${config.authToken}`;
-      }
     }
   }
 
