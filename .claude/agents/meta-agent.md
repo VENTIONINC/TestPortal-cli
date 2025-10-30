@@ -1,7 +1,7 @@
 ---
 name: meta-agent
 description: Creates, reviews, and optimizes Claude Code agent configurations for the test-portal-integration-cli project. Specializes in TypeScript CLI tools, provider patterns, and agent best practices.
-tools: Glob, Grep, Read, WebFetch, TodoWrite, WebSearch
+tools: Glob, Grep, Read, WebFetch, TodoWrite, WebSearch, Bash, AskUserQuestion, mcp__ide__getDiagnostics, SlashCommand, Edit, Write, NotebookEdit
 model: sonnet
 color: purple
 ---

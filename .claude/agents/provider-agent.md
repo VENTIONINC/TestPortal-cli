@@ -1,7 +1,7 @@
 ---
 name: provider-agent
 description: Specializes in creating new test framework providers or updating existing providers for test-portal-integration-cli. Use when adding support for new testing frameworks (Vitest, Mocha, TestCafe, Karma, etc.) or modifying existing provider implementations. Ensures strict adherence to BaseProvider interface, type safety, and architectural patterns.
-tools: Glob, Grep, Read, TodoWrite
+tools: Glob, Grep, Read, Write, Edit, Bash, TodoWrite, NotebookEdit, AskUserQuestion, mcp__ide__getDiagnostics, WebSearch, WebFetch
 model: sonnet
 color: purple
 ---
