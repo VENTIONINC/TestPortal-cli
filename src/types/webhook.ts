@@ -2,8 +2,6 @@ export interface WebhookConfig {
   url: string;
   method?: 'POST' | 'PUT' | 'PATCH';
   headers?: Record<string, string>;
-  authToken?: string;
-  authHeader?: string;
   timeout?: number;
   retries?: number;
   retryDelay?: number;

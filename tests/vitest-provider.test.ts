@@ -52,7 +52,7 @@ describe('VitestProvider', () => {
       expect(isValid).toBe(true);
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject invalid vitest report', async () => {
@@ -66,7 +66,7 @@ describe('VitestProvider', () => {
       expect(isValid).toBe(false);
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject non-existent file', async () => {
@@ -89,7 +89,7 @@ describe('VitestProvider', () => {
       expect(isValid).toBe(false);
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
   });
 
@@ -164,7 +164,7 @@ describe('VitestProvider', () => {
       expect(unifiedReport.stats.failed).toBe(0);
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should handle failed tests with error messages', async () => {
@@ -235,7 +235,7 @@ describe('VitestProvider', () => {
       ).toContain('AssertionError');
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should handle skipped tests', async () => {
@@ -297,7 +297,7 @@ describe('VitestProvider', () => {
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should extract suite name from file path', async () => {
@@ -360,7 +360,7 @@ describe('VitestProvider', () => {
       expect(unifiedReport.suites[0]?.name).toBe('auth');
 
       await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      await fs.rm(testDataDir, { recursive: true });
     });
   });
 });
