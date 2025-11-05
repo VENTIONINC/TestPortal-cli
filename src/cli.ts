@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { config as dotenvConfig } from 'dotenv';
+dotenvConfig();
+
 import { Command } from 'commander';
 import { Converter } from '@/core/converter';
 import { ConvertOptions } from '@/types/providers';

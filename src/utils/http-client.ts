@@ -6,6 +6,7 @@ import {
 } from '@/types/webhook';
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import FormData from 'form-data';
+import { convertUnifiedToCTRF } from '@/utils/ctrf-converter';
 
 export class HttpClient {
   private defaultTimeout = 30000;
@@ -37,9 +38,12 @@ export class HttpClient {
     const method = config.method || 'POST';
     const timeout = config.timeout ?? this.defaultTimeout;
 
-    // Create FormData and append the report as a JSON file
+    // Convert UnifiedReport to CTRF format
+    const ctrfReport = convertUnifiedToCTRF(report);
+
+    // Create FormData and append the CTRF report as a JSON file
     const formData = new FormData();
-    const reportJson = JSON.stringify(report, null, 2);
+    const reportJson = JSON.stringify(ctrfReport, null, 2);
     formData.append('report', reportJson, {
       filename: 'ctrf-report.json',
       contentType: 'application/json',
