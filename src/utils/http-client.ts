@@ -39,7 +39,7 @@ export class HttpClient {
     const timeout = config.timeout ?? this.defaultTimeout;
 
     // Convert UnifiedReport to CTRF format
-    const ctrfReport = convertUnifiedToCTRF(report);
+    const ctrfReport = await convertUnifiedToCTRF(report);
 
     // Create FormData and append the CTRF report as a JSON file
     const formData = new FormData();

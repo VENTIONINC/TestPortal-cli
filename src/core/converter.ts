@@ -4,6 +4,7 @@ import { UnifiedReport } from '@/types/unified-report';
 import { ConvertOptions } from '@/types/providers';
 import { ProviderRegistry } from '@/core/provider-registry';
 import { HttpClient } from '@/utils/http-client';
+import { convertUnifiedToCTRF } from '@/utils/ctrf-converter';
 
 export class Converter {
   private providers: ProviderRegistry;
@@ -59,15 +60,18 @@ export class Converter {
     report: UnifiedReport,
     options: ConvertOptions
   ): Promise<void> {
+    // Convert to CTRF format for output
+    const ctrfReport = await convertUnifiedToCTRF(report);
+
     if (options.stdout) {
-      console.log(JSON.stringify(report, null, 2));
+      console.log(JSON.stringify(ctrfReport, null, 2));
     } else if (options.output) {
       const output = this.resolveOutputPath(options);
-      await fs.writeFile(output, JSON.stringify(report, null, 2), 'utf8');
+      await fs.writeFile(output, JSON.stringify(ctrfReport, null, 2), 'utf8');
     } else if (!options.webhook) {
       // No webhook configured and no explicit output - fallback to file
       const output = this.resolveOutputPath(options);
-      await fs.writeFile(output, JSON.stringify(report, null, 2), 'utf8');
+      await fs.writeFile(output, JSON.stringify(ctrfReport, null, 2), 'utf8');
     }
     // If webhook is configured but no output/stdout specified, skip file output
   }

@@ -1,10 +1,13 @@
 import { UnifiedReport } from '@/types/unified-report';
 import { CTRFReport, CTRFTest, TestStatus } from '@/types/ctrf';
+import { EnvironmentDetector } from '@/utils/environment';
 
 /**
  * Converts UnifiedReport format to CTRF (Common Test Report Format)
  */
-export function convertUnifiedToCTRF(unified: UnifiedReport): CTRFReport {
+export async function convertUnifiedToCTRF(
+  unified: UnifiedReport
+): Promise<CTRFReport> {
   const tests: CTRFTest[] = [];
 
   // Flatten all tests from all suites
@@ -46,6 +49,9 @@ export function convertUnifiedToCTRF(unified: UnifiedReport): CTRFReport {
     }
   }
 
+  // Detect environment information
+  const environment = await EnvironmentDetector.detect();
+
   // Build CTRF report
   const ctrfReport: CTRFReport = {
     results: {
@@ -60,13 +66,16 @@ export function convertUnifiedToCTRF(unified: UnifiedReport): CTRFReport {
         pending: unified.stats.pending || 0,
         skipped: unified.stats.skipped,
         other:
-          (unified.stats.timeout || 0) + (unified.stats.interrupted || 0) + (unified.stats.todo || 0),
+          (unified.stats.timeout || 0) +
+          (unified.stats.interrupted || 0) +
+          (unified.stats.todo || 0),
         start: new Date(unified.stats.startTime).getTime(),
         stop: unified.stats.endTime
           ? new Date(unified.stats.endTime).getTime()
           : Date.now(),
       },
       tests,
+      environment,
     },
   };
 

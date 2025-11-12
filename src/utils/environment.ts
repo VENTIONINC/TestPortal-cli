@@ -69,11 +69,19 @@ export class EnvironmentDetector {
     try {
       const env = process.env;
 
-      return {
-        repositoryName: env.GIT_REPOSITORY_NAME,
-        repositoryUrl: env.GIT_REPOSITORY_URL,
-        branchName: env.GIT_BRANCH_NAME,
-      };
+      const git: Partial<CTRFEnvironment> = {};
+
+      if (env.GIT_REPOSITORY_NAME) {
+        git.repositoryName = env.GIT_REPOSITORY_NAME;
+      }
+      if (env.GIT_REPOSITORY_URL) {
+        git.repositoryUrl = env.GIT_REPOSITORY_URL;
+      }
+      if (env.GIT_BRANCH_NAME) {
+        git.branchName = env.GIT_BRANCH_NAME;
+      }
+
+      return Object.keys(git).length > 0 ? git : null;
     } catch {
       return null;
     }
