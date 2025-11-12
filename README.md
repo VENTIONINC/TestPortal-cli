@@ -32,17 +32,37 @@ npm install test-report-converter
 
 ## 📖 Usage
 
+### Environment Configuration
+
+Create a `.env` file in your project root to configure default webhook settings:
+
+```bash
+# Test Portal URL - Default webhook URL for sending test reports
+TEST_PORTAL_URL=http://localhost:3001/api/v2/upload-ctrf-report-api-key
+
+# Test Portal API Key - Used for authenticating webhook requests
+TEST_PORTAL_API_KEY=your-api-key-here
+```
+
+**Note:** When `TEST_PORTAL_URL` is set, the CLI will automatically send reports to this URL unless `--webhook` is explicitly provided. The `TEST_PORTAL_API_KEY` is automatically added as the `X-API-Key` header for all webhook requests.
+
 ### CLI Examples
 
 ```bash
-# Convert Playwright results to unified format
+# Convert Playwright results to unified format (file only)
 test-convert -i playwright-results.json -t playwright -o unified-report.json
 
-# Send report directly to webhook
+# Send report to TEST_PORTAL_URL from .env (automatic)
+test-convert -i playwright-results.json -t playwright
+
+# Override .env webhook URL
 test-convert -i playwright-results.json -t playwright --webhook https://api.example.com/reports
 
-# Output to console
+# Output to console only
 test-convert -i playwright-results.json -t playwright --stdout
+
+# File output + webhook to .env URL
+test-convert -i playwright-results.json -t playwright -o unified-report.json
 ```
 
 ### Programmatic Usage
@@ -61,32 +81,43 @@ console.log('Conversion complete!', report);
 
 ## 🛠️ CLI Options
 
-- `-i, --input <path>` - Path to source report file (required)
-- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit (required)
+### Required Options
+
+- `-i, --input <path>` - Path to source report file
+- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit
+
+### Output Options
+
 - `-o, --output <path>` - Write unified report to file
 - `--stdout` - Output to console instead of file
-- `--webhook <url>` - Send report to webhook URL
 
 ### Webhook Options
 
+- `--webhook <url>` - Send report to webhook URL (defaults to `TEST_PORTAL_URL` env var)
 - `--headers <json>` - Custom headers as JSON string
-- `--auth-token <token>` - Authentication token
-- `--auth-header <name>` - Custom auth header name (default: Authorization)
 - `--method <method>` - HTTP method: POST, PUT, PATCH (default: POST)
 - `--timeout <ms>` - Request timeout in milliseconds (default: 30000)
 - `--retries <count>` - Number of retry attempts (default: 3)
 - `--retry-delay <ms>` - Delay between retries in milliseconds (default: 1000)
 - `--verify-ssl` / `--no-verify-ssl` - SSL certificate verification
 
+**Authentication:** The CLI automatically uses `TEST_PORTAL_API_KEY` from `.env` as the `X-API-Key` header for all webhook requests.
+
 ## 🔗 Advanced Webhook Usage
 
-### With Authentication
+### Using Environment Variables (Recommended)
+
+Set up your `.env` file once and all reports are automatically sent:
 
 ```bash
-test-convert -i results.json -t playwright \
-  --webhook https://api.example.com/reports \
-  --auth-token "your-api-token" \
-  --method POST
+# .env
+TEST_PORTAL_URL=https://test-portal.example.com/api/v2/upload-ctrf-report-api-key
+TEST_PORTAL_API_KEY=your-api-key-here
+```
+
+```bash
+# Reports are automatically sent to TEST_PORTAL_URL with API key authentication
+test-convert -i results.json -t playwright
 ```
 
 ### With Custom Headers
@@ -94,8 +125,10 @@ test-convert -i results.json -t playwright \
 ```bash
 test-convert -i results.json -t playwright \
   --webhook https://api.example.com/reports \
-  --headers '{"X-API-Key": "your-key", "X-Team": "qa"}'
+  --headers '{"X-Team": "qa", "X-Environment": "production"}'
 ```
+
+**Note:** The `X-API-Key` header is automatically included from `TEST_PORTAL_API_KEY` env var.
 
 ### With Retry Configuration
 
@@ -107,16 +140,7 @@ test-convert -i results.json -t playwright \
   --timeout 60000
 ```
 
-### Custom Authentication Header
-
-```bash
-test-convert -i results.json -t playwright \
-  --webhook https://api.example.com/reports \
-  --auth-token "your-token" \
-  --auth-header "X-API-Token"
-```
-
-### Skip SSL Verification
+### Skip SSL Verification (Development Only)
 
 ```bash
 test-convert -i results.json -t playwright \
@@ -272,18 +296,24 @@ The tool generates unified format reports with consistent structure:
 
 ### GitHub Actions
 
+Use repository secrets to configure the Test Portal URL and API key:
+
 ```yaml
-- name: Convert Test Results
+- name: Convert and Send Test Results
+  env:
+    TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
+    TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
   run: |
-    npx test-report-converter -i test-results.json -t playwright \
-      --webhook ${{ secrets.WEBHOOK_URL }} \
-      --auth-token ${{ secrets.API_TOKEN }}
+    npx test-report-converter -i test-results.json -t playwright
 ```
 
 ### With File Output
 
 ```yaml
 - name: Convert and Save Test Results
+  env:
+    TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
+    TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
   run: |
     npx test-report-converter -i test-results.json -t playwright \
       --output artifacts/unified-report.json
@@ -299,10 +329,11 @@ The tool generates unified format reports with consistent structure:
 
 ```yaml
 test_report_conversion:
+  variables:
+    TEST_PORTAL_URL: $TEST_PORTAL_URL
+    TEST_PORTAL_API_KEY: $TEST_PORTAL_API_KEY
   script:
-    - npx test-report-converter -i test-results.json -t playwright \
-        --webhook $WEBHOOK_URL \
-        --auth-token $API_TOKEN
+    - npx test-report-converter -i test-results.json -t playwright
 ```
 
 ## 🛠️ Development
@@ -311,6 +342,10 @@ test_report_conversion:
 git clone https://github.com/user/test-report-converter.git
 cd test-report-converter
 npm install
+
+# Copy .env.example to .env and configure
+cp .env.example .env
+
 npm run build
 npm test
 ```

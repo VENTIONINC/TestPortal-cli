@@ -61,10 +61,15 @@ export class Converter {
   ): Promise<void> {
     if (options.stdout) {
       console.log(JSON.stringify(report, null, 2));
-    } else if (options.output || !options.webhook) {
+    } else if (options.output) {
+      const output = this.resolveOutputPath(options);
+      await fs.writeFile(output, JSON.stringify(report, null, 2), 'utf8');
+    } else if (!options.webhook) {
+      // No webhook configured and no explicit output - fallback to file
       const output = this.resolveOutputPath(options);
       await fs.writeFile(output, JSON.stringify(report, null, 2), 'utf8');
     }
+    // If webhook is configured but no output/stdout specified, skip file output
   }
 
   private async sendWebhook(report: UnifiedReport, config: any): Promise<void> {
