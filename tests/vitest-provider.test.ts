@@ -8,7 +8,15 @@ describe('VitestProvider', () => {
 
   beforeEach(() => {
     provider = new VitestProvider();
-    testDataDir = join(__dirname, 'test-data');
+    testDataDir = join(__dirname, 'test-data', `vitest-${Date.now()}-${Math.random()}`);
+  });
+
+  afterEach(async () => {
+    try {
+      await fs.rm(testDataDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
   });
 
   describe('validate', () => {
@@ -50,9 +58,6 @@ describe('VitestProvider', () => {
 
       const isValid = await provider.validate(testFile);
       expect(isValid).toBe(true);
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject invalid vitest report', async () => {
@@ -64,9 +69,6 @@ describe('VitestProvider', () => {
 
       const isValid = await provider.validate(testFile);
       expect(isValid).toBe(false);
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject non-existent file', async () => {
@@ -87,9 +89,6 @@ describe('VitestProvider', () => {
 
       const isValid = await provider.validate(testFile);
       expect(isValid).toBe(false);
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
   });
 
@@ -162,9 +161,6 @@ describe('VitestProvider', () => {
       expect(unifiedReport.stats.total).toBe(1);
       expect(unifiedReport.stats.passed).toBe(1);
       expect(unifiedReport.stats.failed).toBe(0);
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should handle failed tests with error messages', async () => {
@@ -233,9 +229,6 @@ describe('VitestProvider', () => {
       expect(
         unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
       ).toContain('AssertionError');
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should handle skipped tests', async () => {
@@ -295,9 +288,6 @@ describe('VitestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should extract suite name from file path', async () => {
@@ -358,9 +348,6 @@ describe('VitestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.name).toBe('auth');
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
   });
 });

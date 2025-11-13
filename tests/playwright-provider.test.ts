@@ -8,7 +8,15 @@ describe('PlaywrightProvider', () => {
 
   beforeEach(() => {
     provider = new PlaywrightProvider();
-    testDataDir = join(__dirname, 'test-data');
+    testDataDir = join(__dirname, 'test-data', `playwright-${Date.now()}-${Math.random()}`);
+  });
+
+  afterEach(async () => {
+    try {
+      await fs.rm(testDataDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
   });
 
   describe('validate', () => {
@@ -24,9 +32,6 @@ describe('PlaywrightProvider', () => {
 
       const isValid = await provider.validate(testFile);
       expect(isValid).toBe(true);
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject invalid playwright report', async () => {
@@ -38,9 +43,6 @@ describe('PlaywrightProvider', () => {
 
       const isValid = await provider.validate(testFile);
       expect(isValid).toBe(false);
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
 
     it('should reject non-existent file', async () => {
@@ -109,9 +111,6 @@ describe('PlaywrightProvider', () => {
       expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('should pass');
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
       expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(1000);
-
-      await fs.unlink(testFile);
-      await fs.rm(testDataDir, { recursive: true });
     });
   });
 });

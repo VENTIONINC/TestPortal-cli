@@ -21,18 +21,21 @@ export class EnvironmentDetector {
     const env = process.env;
 
     if (env.GITHUB_ACTIONS) {
+      const serverUrl = env.GITHUB_SERVER_URL || 'https://github.com';
       return {
+        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.GITHUB_WORKFLOW,
         buildNumber: env.GITHUB_RUN_NUMBER,
-        buildUrl: `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`,
+        buildUrl: `${serverUrl}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`,
         repositoryName: env.GITHUB_REPOSITORY,
-        repositoryUrl: `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}`,
+        repositoryUrl: `${serverUrl}/${env.GITHUB_REPOSITORY}`,
         branchName: env.GITHUB_HEAD_REF || env.GITHUB_REF_NAME,
       };
     }
 
     if (env.GITLAB_CI) {
       return {
+        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.CI_PROJECT_NAME,
         buildNumber: env.CI_PIPELINE_ID,
         buildUrl: env.CI_PIPELINE_URL,
@@ -44,6 +47,7 @@ export class EnvironmentDetector {
 
     if (env.JENKINS_URL) {
       return {
+        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.JOB_NAME,
         buildNumber: env.BUILD_NUMBER,
         buildUrl: env.BUILD_URL,
@@ -53,6 +57,7 @@ export class EnvironmentDetector {
 
     if (env.AZURE_HTTP_USER_AGENT) {
       return {
+        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.BUILD_DEFINITIONNAME,
         buildNumber: env.BUILD_BUILDNUMBER,
         buildUrl: `${env.SYSTEM_TEAMFOUNDATIONCOLLECTIONURI}${env.SYSTEM_TEAMPROJECT}/_build/results?buildId=${env.BUILD_BUILDID}`,
@@ -69,11 +74,19 @@ export class EnvironmentDetector {
     try {
       const env = process.env;
 
-      return {
-        repositoryName: env.GIT_REPOSITORY_NAME,
-        repositoryUrl: env.GIT_REPOSITORY_URL,
-        branchName: env.GIT_BRANCH_NAME,
-      };
+      const git: Partial<CTRFEnvironment> = {};
+
+      if (env.GIT_REPOSITORY_NAME) {
+        git.repositoryName = env.GIT_REPOSITORY_NAME;
+      }
+      if (env.GIT_REPOSITORY_URL) {
+        git.repositoryUrl = env.GIT_REPOSITORY_URL;
+      }
+      if (env.GIT_BRANCH_NAME) {
+        git.branchName = env.GIT_BRANCH_NAME;
+      }
+
+      return Object.keys(git).length > 0 ? git : null;
     } catch {
       return null;
     }
