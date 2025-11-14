@@ -10,13 +10,13 @@ export interface JunitProperties {
 export interface JunitFailure {
   message: string;
   type: string;
-  content: string;
+  _: string; // xml2js stores text content in _ property when mergeAttrs is true
 }
 
 export interface JunitError {
   message: string;
   type: string;
-  content: string;
+  _: string; // xml2js stores text content in _ property when mergeAttrs is true
 }
 
 export interface JunitTestCase {

@@ -159,14 +159,14 @@ export class JunitProvider implements BaseProvider {
     if (testCase.failure) {
       errors.push({
         message: testCase.failure.message || 'Test failure',
-        stack: testCase.failure.content || '',
+        stack: testCase.failure._ || '',
       });
     }
 
     if (testCase.error) {
       errors.push({
         message: testCase.error.message || 'Test error',
-        stack: testCase.error.content || '',
+        stack: testCase.error._ || '',
       });
     }
 
