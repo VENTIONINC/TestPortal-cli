@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Failed" total="8" passed="5" failed="2" inconclusive="0" skipped="1" asserts="15" engine-version="3.15.0" clr-version="4.0.30319.42000" start-time="2024-01-15 10:30:00Z" end-time="2024-01-15 10:30:15Z" duration="15.234">
+  <command-line><![CDATA[nunit3-console.exe MyTests.dll]]></command-line>
+  <test-suite type="Assembly" id="0-1000" name="MyTests.dll" fullname="C:\Projects\MyProject\bin\Debug\MyTests.dll" runstate="Runnable" testcasecount="8" result="Failed" start-time="2024-01-15 10:30:00Z" end-time="2024-01-15 10:30:15Z" duration="15.234" total="8" passed="5" failed="2" inconclusive="0" skipped="1" asserts="15">
+    <test-suite type="TestFixture" id="0-1001" name="UserServiceTests" fullname="MyApp.Tests.UserServiceTests" classname="MyApp.Tests.UserServiceTests" runstate="Runnable" testcasecount="5" result="Failed" start-time="2024-01-15 10:30:00Z" end-time="2024-01-15 10:30:10Z" duration="10.123" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="10">
+      <test-case id="0-1002" name="CreateUser_WithValidData_ReturnsUser" fullname="MyApp.Tests.UserServiceTests.CreateUser_WithValidData_ReturnsUser" methodname="CreateUser_WithValidData_ReturnsUser" classname="MyApp.Tests.UserServiceTests" runstate="Runnable" seed="1234567" result="Passed" start-time="2024-01-15 10:30:00Z" end-time="2024-01-15 10:30:02Z" duration="2.145" asserts="3" />
+      <test-case id="0-1003" name="CreateUser_WithInvalidEmail_ThrowsException" fullname="MyApp.Tests.UserServiceTests.CreateUser_WithInvalidEmail_ThrowsException" methodname="CreateUser_WithInvalidEmail_ThrowsException" classname="MyApp.Tests.UserServiceTests" runstate="Runnable" seed="1234568" result="Passed" start-time="2024-01-15 10:30:02Z" end-time="2024-01-15 10:30:04Z" duration="1.987" asserts="2" />
+      <test-case id="0-1004" name="GetUser_WithExistingId_ReturnsUser" fullname="MyApp.Tests.UserServiceTests.GetUser_WithExistingId_ReturnsUser" methodname="GetUser_WithExistingId_ReturnsUser" classname="MyApp.Tests.UserServiceTests" runstate="Runnable" seed="1234569" result="Failed" start-time="2024-01-15 10:30:04Z" end-time="2024-01-15 10:30:06Z" duration="2.234" asserts="3">
+        <failure>
+          <message><![CDATA[  Expected: User with ID 123
+  But was:  null
+]]></message>
+          <stack-trace><![CDATA[   at MyApp.Tests.UserServiceTests.GetUser_WithExistingId_ReturnsUser() in C:\Projects\MyProject\Tests\UserServiceTests.cs:line 45
+   at NUnit.Framework.Internal.TaskAwaitAdapter.GenericAdapter`1.GetResult()
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await(Func`1 invoke)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.RunTestMethod(TestExecutionContext context)
+]]></stack-trace>
+        </failure>
+      </test-case>
+      <test-case id="0-1005" name="UpdateUser_WithValidData_ReturnsTrue" fullname="MyApp.Tests.UserServiceTests.UpdateUser_WithValidData_ReturnsTrue" methodname="UpdateUser_WithValidData_ReturnsTrue" classname="MyApp.Tests.UserServiceTests" runstate="Runnable" seed="1234570" result="Passed" start-time="2024-01-15 10:30:06Z" end-time="2024-01-15 10:30:08Z" duration="1.756" asserts="2" />
+      <test-case id="0-1006" name="DeleteUser_WithNonExistentId_ReturnsFalse" fullname="MyApp.Tests.UserServiceTests.DeleteUser_WithNonExistentId_ReturnsFalse" methodname="DeleteUser_WithNonExistentId_ReturnsFalse" classname="MyApp.Tests.UserServiceTests" runstate="Runnable" seed="1234571" result="Failed" start-time="2024-01-15 10:30:08Z" end-time="2024-01-15 10:30:10Z" duration="2.001" asserts="0">
+        <failure>
+          <message><![CDATA[System.NullReferenceException : Object reference not set to an instance of an object.]]></message>
+          <stack-trace><![CDATA[   at MyApp.Services.UserService.DeleteUser(Int32 id) in C:\Projects\MyProject\Services\UserService.cs:line 89
+   at MyApp.Tests.UserServiceTests.DeleteUser_WithNonExistentId_ReturnsFalse() in C:\Projects\MyProject\Tests\UserServiceTests.cs:line 78
+]]></stack-trace>
+        </failure>
+      </test-case>
+    </test-suite>
+    <test-suite type="TestFixture" id="0-1007" name="AuthenticationTests" fullname="MyApp.Tests.AuthenticationTests" classname="MyApp.Tests.AuthenticationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2024-01-15 10:30:10Z" end-time="2024-01-15 10:30:15Z" duration="5.111" total="3" passed="2" failed="0" inconclusive="0" skipped="1" asserts="5">
+      <test-case id="0-1008" name="Login_WithValidCredentials_ReturnsToken" fullname="MyApp.Tests.AuthenticationTests.Login_WithValidCredentials_ReturnsToken" methodname="Login_WithValidCredentials_ReturnsToken" classname="MyApp.Tests.AuthenticationTests" runstate="Runnable" seed="1234572" result="Passed" start-time="2024-01-15 10:30:10Z" end-time="2024-01-15 10:30:12Z" duration="2.345" asserts="2" />
+      <test-case id="0-1009" name="Login_WithInvalidPassword_ThrowsException" fullname="MyApp.Tests.AuthenticationTests.Login_WithInvalidPassword_ThrowsException" methodname="Login_WithInvalidPassword_ThrowsException" classname="MyApp.Tests.AuthenticationTests" runstate="Runnable" seed="1234573" result="Passed" start-time="2024-01-15 10:30:12Z" end-time="2024-01-15 10:30:14Z" duration="1.766" asserts="3" />
+      <test-case id="0-1010" name="RefreshToken_Integration_Test" fullname="MyApp.Tests.AuthenticationTests.RefreshToken_Integration_Test" methodname="RefreshToken_Integration_Test" classname="MyApp.Tests.AuthenticationTests" runstate="Runnable" seed="1234574" result="Skipped" start-time="2024-01-15 10:30:14Z" end-time="2024-01-15 10:30:14Z" duration="0.000" asserts="0">
+        <reason>
+          <message><![CDATA[Integration tests are disabled in CI environment]]></message>
+        </reason>
+      </test-case>
+    </test-suite>
+  </test-suite>
+</test-run>

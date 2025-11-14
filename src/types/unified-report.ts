@@ -140,6 +140,7 @@ export const UnifiedReportSchema = z.object({
     'playwright',
     'junit',
     'vitest',
+    'nunit',
     'other',
   ]),
   frameworkVersion: z.string().optional(),
