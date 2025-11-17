@@ -1,6 +1,7 @@
 import { VitestProvider } from '@/providers/vitest';
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { convertUnifiedToCTRF } from '@/utils/ctrf-converter';
 
 describe('VitestProvider', () => {
   let provider: VitestProvider;
@@ -348,6 +349,67 @@ describe('VitestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.name).toBe('auth');
+    });
+
+    it('should set framework name in CTRF output', async () => {
+      const vitestReport = {
+        numTotalTestSuites: 1,
+        numPassedTestSuites: 1,
+        numFailedTestSuites: 0,
+        numPendingTestSuites: 0,
+        numTotalTests: 1,
+        numPassedTests: 1,
+        numFailedTests: 0,
+        numPendingTests: 0,
+        numTodoTests: 0,
+        snapshot: {
+          added: 0,
+          failure: false,
+          filesAdded: 0,
+          filesRemoved: 0,
+          filesRemovedList: [],
+          filesUnmatched: 0,
+          filesUpdated: 0,
+          matched: 0,
+          total: 0,
+          unchecked: 0,
+          uncheckedKeysByFile: [],
+          unmatched: 0,
+          updated: 0,
+          didUpdate: false,
+        },
+        startTime: 1761646529949,
+        success: true,
+        testResults: [
+          {
+            assertionResults: [
+              {
+                ancestorTitles: [],
+                fullName: 'test',
+                status: 'passed',
+                title: 'test',
+                duration: 1,
+                failureMessages: [],
+                meta: {},
+              },
+            ],
+            startTime: 1761646530086,
+            endTime: 1761646530087,
+            status: 'passed',
+            message: '',
+            name: '/Users/test/test.ts',
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'framework-vitest-report.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(vitestReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await convertUnifiedToCTRF(unifiedReport);
+
+      expect(ctrfReport.results.tool.name).toBe('vitest');
     });
   });
 });

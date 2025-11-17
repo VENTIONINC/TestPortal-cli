@@ -203,7 +203,7 @@ When comparing with other testing report schemas, watch for these common conflic
 
 This structure provides a comprehensive yet flexible format that can accommodate most testing frameworks while maintaining consistency and validation. The schema is designed to be:
 
-- **Framework Agnostic**: Works with Jest, Playwright, Cypress, and other testing tools
+- **Framework Agnostic**: Works with Jest, Playwright, Cypress, JUnit, Vitest, NUnit, and other testing tools
 - **Extensible**: Custom metadata can be added without breaking compatibility
 - **Validated**: Runtime type checking ensures data integrity
 - **Standardized**: Consistent structure across different test sources

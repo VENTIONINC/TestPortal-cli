@@ -113,7 +113,7 @@ Returns a list of available test framework providers.
 ```typescript
 const converter = new Converter();
 const providers = converter.getAvailableProviders();
-console.log(providers); // ['jest', 'playwright', 'cypress', 'junit']
+console.log(providers); // ['jest', 'playwright', 'cypress', 'junit', 'vitest', 'nunit']
 ```
 
 ### `HttpClient`
@@ -289,9 +289,11 @@ interface WebhookResponse {
 ### Supported Providers
 
 - **jest**: Jest test framework reports
-- **playwright**: Playwright test framework reports  
+- **playwright**: Playwright test framework reports
 - **cypress**: Cypress test framework reports
 - **junit**: JUnit XML format reports
+- **vitest**: Vitest test framework reports
+- **nunit**: NUnit XML format reports
 
 ### Provider-Specific Notes
 
@@ -300,7 +302,7 @@ interface WebhookResponse {
 - Includes coverage information when available
 - Maps Jest-specific statuses (todo, pending)
 
-#### Playwright Provider  
+#### Playwright Provider
 - Supports Playwright JSON reporter output
 - Handles retry attempts and flaky tests
 - Includes project and browser information
@@ -315,6 +317,16 @@ interface WebhookResponse {
 - Supports standard JUnit XML format
 - Handles both single testsuite and testsuites formats
 - Maps XML attributes to unified format
+
+#### Vitest Provider
+- Supports Vitest JSON reports (Jest-compatible format)
+- Maps Vitest-specific statuses (passed, failed, skipped, pending, todo)
+- Extracts error messages and stack traces
+
+#### NUnit Provider
+- Supports NUnit XML format
+- Handles NUnit test result files
+- Maps NUnit-specific statuses
 
 ## Error Handling
 
