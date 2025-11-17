@@ -20,6 +20,8 @@ A powerful CLI tool and programmatic library for converting test reports from po
 
 ### Global Installation (CLI)
 
+### Global CLI Installation
+
 ```bash
 npm install -g test-report-converter
 ```
@@ -35,6 +37,8 @@ npm install test-report-converter
 ### Environment Configuration
 
 Create a `.env` file in your project root to configure default webhook settings:
+
+### CLI Usage
 
 ```bash
 # Test Portal URL - Default webhook URL for sending test reports
@@ -73,7 +77,7 @@ import { convert } from 'test-report-converter';
 const report = await convert({
   input: './playwright-results.json',
   provider: 'playwright',
-  output: './unified-report.json'
+  output: './unified-report.json',
 });
 
 console.log('Conversion complete!', report);
@@ -158,7 +162,7 @@ import { convert } from 'test-report-converter';
 const report = await convert({
   input: './test-results.json',
   provider: 'playwright',
-  output: './unified-report.json'
+  output: './unified-report.json',
 });
 ```
 
@@ -173,8 +177,8 @@ const report = await convert({
   webhook: {
     url: 'https://api.example.com/reports',
     authToken: 'your-api-token',
-    retries: 3
-  }
+    retries: 3,
+  },
 });
 ```
 
@@ -200,9 +204,9 @@ await converter.convertAndSave({
     retries: 5,
     retryDelay: 2000,
     headers: {
-      'X-API-Key': 'your-key'
-    }
-  }
+      'X-API-Key': 'your-key',
+    },
+  },
 });
 ```
 
@@ -210,14 +214,14 @@ await converter.convertAndSave({
 
 ### Status Mapping
 
-| Framework | Unified Status | Notes |
-|-----------|----------------|-------|
-| Jest | passed, failed, pending, todo | Standard Jest statuses |
+| Framework  | Unified Status                                | Notes                        |
+| ---------- | --------------------------------------------- | ---------------------------- |
+| Jest       | passed, failed, pending, todo                 | Standard Jest statuses       |
 | Playwright | passed, failed, skipped, timeout, interrupted | Includes flaky test handling |
-| Cypress | passed, failed, pending | Basic Cypress statuses |
-| JUnit | passed, failed, skipped | XML format support |
-| Vitest | passed, failed, skipped, pending, todo | Jest-compatible format |
-| NUnit | passed, failed, skipped | XML format support |
+| Cypress    | passed, failed, pending                       | Basic Cypress statuses       |
+| JUnit      | passed, failed, skipped                       | XML format support           |
+| Vitest     | passed, failed, skipped, pending, todo        | Jest-compatible format       |
+| NUnit      | passed, failed, skipped                       | XML format support           |
 
 ## 📊 Unified Output Format
 
@@ -268,21 +272,25 @@ The tool generates unified format reports with consistent structure:
 ## 🔧 Framework Specific Notes
 
 ### Playwright
+
 - Supports retry attempts and flaky test detection
 - Includes project information and browser details
 - Maps unexpected status to failed
 
 ### Jest
+
 - Includes coverage information when available
 - Maps todo tests to todo status
 - Aggregates assertion counts
 
 ### Cypress
+
 - Supports mochawesome report format
 - Includes screenshot and video references
 - Maps pending tests appropriately
 
 ### JUnit
+
 - Supports both single testsuite and testsuites formats
 - Maps errors to failed status
 - Handles skipped tests correctly
