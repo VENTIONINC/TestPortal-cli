@@ -8,8 +8,8 @@ A powerful CLI tool and programmatic library for converting test reports from po
 
 ## ✨ Features
 
-- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit
-- 📊 **Unified format**: Consistent structure across all frameworks
+- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit
+- 📊 **CTRF format**: Common Test Report Format for consistent structure
 - 🚀 **CLI & Programmatic**: Use as command-line tool or Node.js library
 - 🌐 **Webhook delivery**: Send reports to remote endpoints with retry logic
 - 🔒 **Authentication**: Support for Bearer tokens and custom headers
@@ -84,7 +84,7 @@ console.log('Conversion complete!', report);
 ### Required Options
 
 - `-i, --input <path>` - Path to source report file
-- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit
+- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit
 
 ### Output Options
 
@@ -216,6 +216,8 @@ await converter.convertAndSave({
 | Playwright | passed, failed, skipped, timeout, interrupted | Includes flaky test handling |
 | Cypress | passed, failed, pending | Basic Cypress statuses |
 | JUnit | passed, failed, skipped | XML format support |
+| Vitest | passed, failed, skipped, pending, todo | Jest-compatible format |
+| NUnit | passed, failed, skipped | XML format support |
 
 ## 📊 Unified Output Format
 
@@ -346,8 +348,17 @@ npm install
 # Copy .env.example to .env and configure
 cp .env.example .env
 
+# Build the project
 npm run build
+
+# Run tests
 npm test
+
+# Run CLI in development mode (without building)
+npm run dev -- -i examples/vitest-report-with-env.json -t vitest -o output.json
+
+# Run CLI after building
+node dist/src/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
 ```
 
 ## 📋 Requirements
