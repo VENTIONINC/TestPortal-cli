@@ -8,7 +8,19 @@ describe('PlaywrightProvider', () => {
 
   beforeEach(() => {
     provider = new PlaywrightProvider();
-    testDataDir = join(__dirname, 'test-data');
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `playwright-${Date.now()}-${Math.random()}`
+    );
+  });
+
+  afterEach(async () => {
+    try {
+      await fs.rm(testDataDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
   });
 
   describe('validate', () => {
@@ -24,9 +36,6 @@ describe('PlaywrightProvider', () => {
 
       const isValid = await provider.validate(testFile);
       expect(isValid).toBe(true);
-
-      await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
     });
 
     it('should reject invalid playwright report', async () => {
@@ -38,9 +47,6 @@ describe('PlaywrightProvider', () => {
 
       const isValid = await provider.validate(testFile);
       expect(isValid).toBe(false);
-
-      await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
     });
 
     it('should reject non-existent file', async () => {
@@ -50,7 +56,7 @@ describe('PlaywrightProvider', () => {
   });
 
   describe('convert', () => {
-    it('should convert basic playwright report to CTRF', async () => {
+    it('should convert basic playwright report to unified report', async () => {
       const playwrightReport = {
         config: {
           version: '1.43.0',
@@ -58,23 +64,34 @@ describe('PlaywrightProvider', () => {
         suites: [
           {
             title: 'Test Suite',
-            tests: [
+            file: 'test.spec.ts',
+            line: 1,
+            column: 1,
+            specs: [
               {
                 title: 'should pass',
-                status: 'passed',
-                results: [
+                ok: true,
+                tags: [],
+                id: 'test-1',
+                file: 'test.spec.ts',
+                line: 5,
+                column: 3,
+                tests: [
                   {
-                    duration: 1000,
+                    timeout: 30000,
+                    expectedStatus: 'passed',
                     status: 'passed',
-                    retry: 0,
-                    startTime: '2024-01-01T00:00:00.000Z',
+                    results: [
+                      {
+                        workerIndex: 0,
+                        status: 'passed',
+                        duration: 1000,
+                        retry: 0,
+                        startTime: '2024-01-01T00:00:00.000Z',
+                      },
+                    ],
                   },
                 ],
-                location: {
-                  file: 'test.spec.ts',
-                  line: 1,
-                  column: 1,
-                },
               },
             ],
           },
@@ -89,17 +106,15 @@ describe('PlaywrightProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(playwrightReport), 'utf8');
 
-      const ctrfReport = await provider.convert(testFile);
+      const unifiedReport = await provider.convert(testFile);
 
-      expect(ctrfReport.results.tool.name).toBe('playwright');
-      expect(ctrfReport.results.tool.version).toBe('1.43.0');
-      expect(ctrfReport.results.tests).toHaveLength(1);
-      expect(ctrfReport.results.tests[0]?.name).toBe('should pass');
-      expect(ctrfReport.results.tests[0]?.status).toBe('passed');
-      expect(ctrfReport.results.tests[0]?.duration).toBe(1000);
-
-      await fs.unlink(testFile);
-      await fs.rmdir(testDataDir);
+      expect(unifiedReport.framework).toBe('playwright');
+      expect(unifiedReport.frameworkVersion).toBe('1.43.0');
+      expect(unifiedReport.suites).toHaveLength(1);
+      expect(unifiedReport.suites[0]?.tests).toHaveLength(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('should pass');
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
+      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(1000);
     });
   });
 });

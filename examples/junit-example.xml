@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="JUnit Test Results" tests="12" failures="3" errors="1" time="45.234" timestamp="2023-12-28T14:30:00">
+  <properties>
+    <property name="java.version" value="11.0.16"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="os.name" value="Linux"/>
+    <property name="os.version" value="5.4.0-74-generic"/>
+    <property name="user.timezone" value="UTC"/>
+    <property name="maven.version" value="3.8.6"/>
+    <property name="surefire.version" value="3.0.0-M7"/>
+  </properties>
+  
+  <testsuite name="com.example.tests.AuthServiceTest" tests="3" failures="1" errors="0" time="12.456" timestamp="2023-12-28T14:30:00" skipped="0" hostname="test-runner-01">
+    <properties>
+      <property name="test.framework" value="JUnit 5"/>
+      <property name="test.runner" value="Maven Surefire"/>
+    </properties>
+    
+    <testcase name="testValidUserAuthentication" classname="com.example.tests.AuthServiceTest" time="2.345">
+      <system-out><![CDATA[
+INFO: Starting authentication test for valid user
+INFO: User authentication successful
+INFO: Test completed successfully
+]]></system-out>
+    </testcase>
+    
+    <testcase name="testInvalidUserAuthentication" classname="com.example.tests.AuthServiceTest" time="1.876">
+      <system-out><![CDATA[
+INFO: Starting authentication test for invalid user
+INFO: Authentication failed as expected
+INFO: Test completed successfully
+]]></system-out>
+    </testcase>
+    
+    <testcase name="testPasswordReset" classname="com.example.tests.AuthServiceTest" time="8.235">
+      <failure message="Expected password reset to return success message but got null" type="java.lang.AssertionError">
+        <![CDATA[
+java.lang.AssertionError: Expected password reset to return success message but got null
+  at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:746)
+  at com.example.tests.AuthServiceTest.testPasswordReset(AuthServiceTest.java:45)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+  at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+  at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:725)
+  at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+  at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+]]>
+      </failure>
+      <system-out><![CDATA[
+INFO: Starting password reset test
+ERROR: Password reset service returned null
+]]></system-out>
+      <system-err><![CDATA[
+ERROR: Failed to send password reset email
+ERROR: SMTP connection timeout
+]]></system-err>
+    </testcase>
+    
+    <system-out><![CDATA[
+Starting AuthServiceTest suite
+Setting up test database connection
+Test suite completed
+]]></system-out>
+  </testsuite>
+  
+  <testsuite name="com.example.tests.EcommerceServiceTest" tests="4" failures="1" errors="1" time="18.675" timestamp="2023-12-28T14:30:15" skipped="0" hostname="test-runner-01">
+    <testcase name="testAddItemToCart" classname="com.example.tests.EcommerceServiceTest" time="3.456">
+      <system-out><![CDATA[
+INFO: Adding item to cart - Product ID: 123
+INFO: Cart updated successfully
+INFO: Item count: 1
+]]></system-out>
+    </testcase>
+    
+    <testcase name="testRemoveItemFromCart" classname="com.example.tests.EcommerceServiceTest" time="2.789">
+      <system-out><![CDATA[
+INFO: Removing item from cart - Product ID: 123
+INFO: Cart updated successfully
+INFO: Item count: 0
+]]></system-out>
+    </testcase>
+    
+    <testcase name="testCheckoutProcess" classname="com.example.tests.EcommerceServiceTest" time="8.934">
+      <failure message="Expected HTTP 200 but got HTTP 500" type="com.example.exceptions.CheckoutException">
+        <![CDATA[
+com.example.exceptions.CheckoutException: Payment processing failed
+  at com.example.services.PaymentService.processPayment(PaymentService.java:78)
+  at com.example.services.CheckoutService.completeCheckout(CheckoutService.java:45)
+  at com.example.tests.EcommerceServiceTest.testCheckoutProcess(EcommerceServiceTest.java:67)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+]]>
+      </failure>
+      <system-out><![CDATA[
+INFO: Starting checkout process
+INFO: Validating cart items
+INFO: Processing payment
+]]></system-out>
+      <system-err><![CDATA[
+ERROR: Payment gateway connection failed
+ERROR: Checkout process aborted
+]]></system-err>
+    </testcase>
+    
+    <testcase name="testInventoryCheck" classname="com.example.tests.EcommerceServiceTest" time="3.496">
+      <error message="Database connection timeout" type="java.sql.SQLException">
+        <![CDATA[
+java.sql.SQLException: Connection is not available, request timed out after 30000ms.
+  at com.zaxxer.hikari.pool.HikariPool.createTimeoutException(HikariPool.java:695)
+  at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:197)
+  at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:162)
+  at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:128)
+  at com.example.dao.InventoryDao.checkStock(InventoryDao.java:23)
+  at com.example.tests.EcommerceServiceTest.testInventoryCheck(EcommerceServiceTest.java:89)
+]]>
+      </error>
+      <system-out><![CDATA[
+INFO: Checking inventory for product ID: 456
+]]></system-out>
+      <system-err><![CDATA[
+ERROR: Database connection pool exhausted
+ERROR: Unable to check inventory
+]]></system-err>
+    </testcase>
+  </testsuite>
+  
+  <testsuite name="com.example.tests.UtilsTest" tests="3" failures="0" errors="0" time="0.245" timestamp="2023-12-28T14:30:35" skipped="0" hostname="test-runner-01">
+    <testcase name="testEmailValidation" classname="com.example.tests.UtilsTest" time="0.089">
+      <system-out><![CDATA[
+INFO: Testing email validation with valid emails
+INFO: All valid emails passed validation
+]]></system-out>
+    </testcase>
+    
+    <testcase name="testPasswordStrength" classname="com.example.tests.UtilsTest" time="0.067">
+      <system-out><![CDATA[
+INFO: Testing password strength validation
+INFO: Strong password validation passed
+]]></system-out>
+    </testcase>
+    
+    <testcase name="testDateFormatting" classname="com.example.tests.UtilsTest" time="0.089">
+      <system-out><![CDATA[
+INFO: Testing date formatting utilities
+INFO: Date formatting tests passed
+]]></system-out>
+    </testcase>
+  </testsuite>
+  
+  <testsuite name="com.example.tests.DatabaseTest" tests="2" failures="1" errors="0" time="14.058" timestamp="2023-12-28T14:30:40" skipped="0" hostname="test-runner-01">
+    <testcase name="testDatabaseConnection" classname="com.example.tests.DatabaseTest" time="5.234">
+      <system-out><![CDATA[
+INFO: Testing database connection
+INFO: Connection established successfully
+INFO: Connection pool initialized
+]]></system-out>
+    </testcase>
+    
+    <testcase name="testQueryTimeout" classname="com.example.tests.DatabaseTest" time="8.824">
+      <failure message="Query execution exceeded timeout limit" type="java.sql.SQLTimeoutException">
+        <![CDATA[
+java.sql.SQLTimeoutException: Query execution was cancelled due to timeout
+  at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:110)
+  at com.mysql.cj.jdbc.exceptions.SQLTimeoutException.createSQLTimeoutException(SQLTimeoutException.java:33)
+  at com.mysql.cj.jdbc.StatementImpl.executeQuery(StatementImpl.java:1222)
+  at com.example.dao.UserDao.findUserById(UserDao.java:45)
+  at com.example.tests.DatabaseTest.testQueryTimeout(DatabaseTest.java:34)
+]]>
+      </failure>
+      <system-out><![CDATA[
+INFO: Testing query timeout handling
+INFO: Executing long-running query
+]]></system-out>
+      <system-err><![CDATA[
+WARN: Query execution time exceeded 5 seconds
+ERROR: Query timeout occurred
+]]></system-err>
+    </testcase>
+  </testsuite>
+  
+  <system-out><![CDATA[
+Maven Surefire Plugin Test Run
+Java Version: 11.0.16
+Test Framework: JUnit 5.9.0
+Total Tests: 12
+Start Time: 2023-12-28T14:30:00
+End Time: 2023-12-28T14:32:11
+]]></system-out>
+  
+  <system-err><![CDATA[
+Some tests failed. See individual test results for details.
+]]></system-err>
+</testsuites>

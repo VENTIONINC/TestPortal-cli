@@ -1,0 +1,593 @@
+{
+  "numFailedTestSuites": 2,
+  "numFailedTests": 3,
+  "numPassedTestSuites": 2,
+  "numPassedTests": 8,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 4,
+  "numTotalTests": 12,
+  "openHandles": [],
+  "snapshot": {
+    "added": 0,
+    "didUpdate": false,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 2,
+    "total": 2,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0
+  },
+  "startTime": 1703847600123,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Auth Service"],
+          "duration": 45,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Auth Service should authenticate valid user",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should authenticate valid user"
+        },
+        {
+          "ancestorTitles": ["Auth Service"],
+          "duration": 32,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Auth Service should reject invalid credentials",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should reject invalid credentials"
+        },
+        {
+          "ancestorTitles": ["Auth Service"],
+          "duration": 156,
+          "failureDetails": [
+            {
+              "matcherResult": {
+                "actual": null,
+                "expected": "Password reset email sent",
+                "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: \"Password reset email sent\"\nReceived: null",
+                "name": "toBe",
+                "pass": false
+              }
+            }
+          ],
+          "failureMessages": [
+            "expect(received).toBe(expected) // Object.is equality\n\nExpected: \"Password reset email sent\"\nReceived: null\n\n  12 |     const result = await authService.resetPassword('user@example.com');\n  13 |     \n> 14 |     expect(result.message).toBe('Password reset email sent');\n     |                            ^\n  15 |   });\n  16 | });\n  17 |\n\n    at Object.<anonymous> (/project/src/__tests__/auth.test.js:14:28)"
+          ],
+          "fullName": "Auth Service should handle password reset",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "should handle password reset"
+        }
+      ],
+      "coverage": {},
+      "displayName": {
+        "color": "white",
+        "name": "auth.test.js"
+      },
+      "endTime": 1703847603456,
+      "leaks": false,
+      "numFailingTests": 1,
+      "numPassingTests": 2,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "openHandles": [],
+      "perfStats": {
+        "end": 1703847603456,
+        "runtime": 3333,
+        "slow": false,
+        "start": 1703847600123
+      },
+      "skipped": false,
+      "snapshot": {
+        "added": 0,
+        "fileDeleted": false,
+        "matched": 0,
+        "unchecked": 0,
+        "unmatched": 0,
+        "updated": 0
+      },
+      "sourceMaps": {},
+      "testFilePath": "/project/src/__tests__/auth.test.js",
+      "testResults": [
+        {
+          "ancestorTitles": ["Auth Service"],
+          "duration": 45,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Auth Service should authenticate valid user",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should authenticate valid user"
+        },
+        {
+          "ancestorTitles": ["Auth Service"],
+          "duration": 32,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Auth Service should reject invalid credentials",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should reject invalid credentials"
+        },
+        {
+          "ancestorTitles": ["Auth Service"],
+          "duration": 156,
+          "failureDetails": [
+            {
+              "matcherResult": {
+                "actual": null,
+                "expected": "Password reset email sent",
+                "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: \"Password reset email sent\"\nReceived: null",
+                "name": "toBe",
+                "pass": false
+              }
+            }
+          ],
+          "failureMessages": [
+            "expect(received).toBe(expected) // Object.is equality\n\nExpected: \"Password reset email sent\"\nReceived: null\n\n  12 |     const result = await authService.resetPassword('user@example.com');\n  13 |     \n> 14 |     expect(result.message).toBe('Password reset email sent');\n     |                            ^\n  15 |   });\n  16 | });\n  17 |\n\n    at Object.<anonymous> (/project/src/__tests__/auth.test.js:14:28)"
+          ],
+          "fullName": "Auth Service should handle password reset",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "should handle password reset"
+        }
+      ]
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["E-commerce API"],
+          "duration": 67,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "E-commerce API should add item to cart",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should add item to cart"
+        },
+        {
+          "ancestorTitles": ["E-commerce API"],
+          "duration": 45,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "E-commerce API should remove item from cart",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should remove item from cart"
+        },
+        {
+          "ancestorTitles": ["E-commerce API"],
+          "duration": 234,
+          "failureDetails": [
+            {
+              "matcherResult": {
+                "actual": 500,
+                "expected": 200,
+                "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500",
+                "name": "toBe",
+                "pass": false
+              }
+            }
+          ],
+          "failureMessages": [
+            "expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500\n\n  23 |     const response = await request(app).post('/api/checkout');\n  24 |     \n> 25 |     expect(response.status).toBe(200);\n     |                             ^\n  26 |   });\n  27 | });\n  28 |\n\n    at Object.<anonymous> (/project/src/__tests__/ecommerce.test.js:25:29)"
+          ],
+          "fullName": "E-commerce API should process checkout",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "should process checkout"
+        }
+      ],
+      "coverage": {},
+      "displayName": {
+        "color": "white",
+        "name": "ecommerce.test.js"
+      },
+      "endTime": 1703847605789,
+      "leaks": false,
+      "numFailingTests": 1,
+      "numPassingTests": 2,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "openHandles": [],
+      "perfStats": {
+        "end": 1703847605789,
+        "runtime": 2333,
+        "slow": false,
+        "start": 1703847603456
+      },
+      "skipped": false,
+      "snapshot": {
+        "added": 0,
+        "fileDeleted": false,
+        "matched": 1,
+        "unchecked": 0,
+        "unmatched": 0,
+        "updated": 0
+      },
+      "sourceMaps": {},
+      "testFilePath": "/project/src/__tests__/ecommerce.test.js",
+      "testResults": [
+        {
+          "ancestorTitles": ["E-commerce API"],
+          "duration": 67,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "E-commerce API should add item to cart",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should add item to cart"
+        },
+        {
+          "ancestorTitles": ["E-commerce API"],
+          "duration": 45,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "E-commerce API should remove item from cart",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should remove item from cart"
+        },
+        {
+          "ancestorTitles": ["E-commerce API"],
+          "duration": 234,
+          "failureDetails": [
+            {
+              "matcherResult": {
+                "actual": 500,
+                "expected": 200,
+                "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500",
+                "name": "toBe",
+                "pass": false
+              }
+            }
+          ],
+          "failureMessages": [
+            "expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500\n\n  23 |     const response = await request(app).post('/api/checkout');\n  24 |     \n> 25 |     expect(response.status).toBe(200);\n     |                             ^\n  26 |   });\n  27 | });\n  28 |\n\n    at Object.<anonymous> (/project/src/__tests__/ecommerce.test.js:25:29)"
+          ],
+          "fullName": "E-commerce API should process checkout",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "should process checkout"
+        }
+      ]
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 12,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should format currency correctly",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 5,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should format currency correctly"
+        },
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 8,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should validate email addresses",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should validate email addresses"
+        },
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 15,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should generate random IDs",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should generate random IDs"
+        },
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should handle date formatting",
+          "invocations": 0,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "pending",
+          "title": "should handle date formatting"
+        }
+      ],
+      "coverage": {},
+      "displayName": {
+        "color": "white",
+        "name": "utils.test.js"
+      },
+      "endTime": 1703847606124,
+      "leaks": false,
+      "numFailingTests": 0,
+      "numPassingTests": 3,
+      "numPendingTests": 1,
+      "numTodoTests": 0,
+      "openHandles": [],
+      "perfStats": {
+        "end": 1703847606124,
+        "runtime": 335,
+        "slow": false,
+        "start": 1703847605789
+      },
+      "skipped": false,
+      "snapshot": {
+        "added": 0,
+        "fileDeleted": false,
+        "matched": 1,
+        "unchecked": 0,
+        "unmatched": 0,
+        "updated": 0
+      },
+      "sourceMaps": {},
+      "testFilePath": "/project/src/__tests__/utils.test.js",
+      "testResults": [
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 12,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should format currency correctly",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 5,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should format currency correctly"
+        },
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 8,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should validate email addresses",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should validate email addresses"
+        },
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 15,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should generate random IDs",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should generate random IDs"
+        },
+        {
+          "ancestorTitles": ["Utils"],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Utils should handle date formatting",
+          "invocations": 0,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "pending",
+          "title": "should handle date formatting"
+        }
+      ]
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Database"],
+          "duration": 89,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Database should connect successfully",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should connect successfully"
+        },
+        {
+          "ancestorTitles": ["Database"],
+          "duration": 145,
+          "failureDetails": [
+            {
+              "matcherResult": {
+                "actual": "Connection timeout",
+                "expected": null,
+                "message": "expect(received).toBeUndefined()\n\nReceived: \"Connection timeout\"",
+                "name": "toBeUndefined",
+                "pass": false
+              }
+            }
+          ],
+          "failureMessages": [
+            "expect(received).toBeUndefined()\n\nReceived: \"Connection timeout\"\n\n  18 |     const result = await db.query('SELECT * FROM users WHERE id = ?', [999]);\n  19 |     \n> 20 |     expect(result.error).toBeUndefined();\n     |                          ^\n  21 |   });\n  22 | });\n  23 |\n\n    at Object.<anonymous> (/project/src/__tests__/database.test.js:20:26)"
+          ],
+          "fullName": "Database should handle query timeouts",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "should handle query timeouts"
+        }
+      ],
+      "coverage": {},
+      "displayName": {
+        "color": "white",
+        "name": "database.test.js"
+      },
+      "endTime": 1703847606358,
+      "leaks": false,
+      "numFailingTests": 1,
+      "numPassingTests": 1,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "openHandles": [],
+      "perfStats": {
+        "end": 1703847606358,
+        "runtime": 234,
+        "slow": false,
+        "start": 1703847606124
+      },
+      "skipped": false,
+      "snapshot": {
+        "added": 0,
+        "fileDeleted": false,
+        "matched": 0,
+        "unchecked": 0,
+        "unmatched": 0,
+        "updated": 0
+      },
+      "sourceMaps": {},
+      "testFilePath": "/project/src/__tests__/database.test.js",
+      "testResults": [
+        {
+          "ancestorTitles": ["Database"],
+          "duration": 89,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Database should connect successfully",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "should connect successfully"
+        },
+        {
+          "ancestorTitles": ["Database"],
+          "duration": 145,
+          "failureDetails": [
+            {
+              "matcherResult": {
+                "actual": "Connection timeout",
+                "expected": null,
+                "message": "expect(received).toBeUndefined()\n\nReceived: \"Connection timeout\"",
+                "name": "toBeUndefined",
+                "pass": false
+              }
+            }
+          ],
+          "failureMessages": [
+            "expect(received).toBeUndefined()\n\nReceived: \"Connection timeout\"\n\n  18 |     const result = await db.query('SELECT * FROM users WHERE id = ?', [999]);\n  19 |     \n> 20 |     expect(result.error).toBeUndefined();\n     |                          ^\n  21 |   });\n  22 | });\n  23 |\n\n    at Object.<anonymous> (/project/src/__tests__/database.test.js:20:26)"
+          ],
+          "fullName": "Database should handle query timeouts",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "should handle query timeouts"
+        }
+      ]
+    }
+  ],
+  "wasInterrupted": false,
+  "coverageMap": {
+    "/project/src/auth.js": {
+      "path": "/project/src/auth.js",
+      "statementMap": {
+        "0": {
+          "start": {"line": 1, "column": 0},
+          "end": {"line": 1, "column": 25}
+        },
+        "1": {
+          "start": {"line": 3, "column": 0},
+          "end": {"line": 15, "column": 1}
+        }
+      },
+      "fnMap": {
+        "0": {
+          "name": "authenticate",
+          "decl": {"start": {"line": 3, "column": 9}, "end": {"line": 3, "column": 21}},
+          "loc": {"start": {"line": 3, "column": 32}, "end": {"line": 15, "column": 1}}
+        }
+      },
+      "branchMap": {
+        "0": {
+          "loc": {"start": {"line": 5, "column": 2}, "end": {"line": 12, "column": 3}},
+          "type": "if",
+          "locations": [
+            {"start": {"line": 5, "column": 2}, "end": {"line": 12, "column": 3}},
+            {"start": {"line": 8, "column": 9}, "end": {"line": 12, "column": 3}}
+          ]
+        }
+      },
+      "s": {"0": 1, "1": 1},
+      "f": {"0": 3},
+      "b": {"0": [2, 1]}
+    }
+  }
+}

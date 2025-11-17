@@ -1,4 +1,4 @@
-import { CTRFReport } from '@/types/ctrf';
+import { UnifiedReport } from '@/types/unified-report';
 import { WebhookConfig } from '@/types/webhook';
 
 export interface ConvertOptions {
@@ -10,13 +10,19 @@ export interface ConvertOptions {
 }
 
 export interface BaseProvider {
-  name: string;
-  convert(inputPath: string): Promise<CTRFReport>;
+  readonly name: string;
   validate(inputPath: string): Promise<boolean>;
+  convert(inputPath: string): Promise<UnifiedReport>;
 }
 
 export interface ProviderRegistry {
   [key: string]: BaseProvider;
 }
 
-export type SupportedProvider = 'playwright' | 'junit' | 'jest' | 'mocha';
+export type SupportedProvider =
+  | 'playwright'
+  | 'junit'
+  | 'jest'
+  | 'mocha'
+  | 'vitest'
+  | 'nunit';

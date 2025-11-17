@@ -1,6 +1,10 @@
 import { Converter } from '@/core/converter';
+import {
+  UnifiedReport,
+  UnifiedTestResult,
+  UnifiedTestStatus,
+} from '@/types/unified-report';
 import { ConvertOptions, BaseProvider } from '@/types/providers';
-import { CTRFReport, CTRFTest, TestStatus } from '@/types/ctrf';
 import { WebhookConfig } from '@/types/webhook';
 
 export async function convert(options: {
@@ -8,7 +12,7 @@ export async function convert(options: {
   provider: string;
   output?: string;
   webhook?: WebhookConfig;
-}): Promise<CTRFReport> {
+}): Promise<UnifiedReport> {
   const converter = new Converter();
 
   if (options.webhook) {
@@ -19,4 +23,10 @@ export async function convert(options: {
 }
 
 export { Converter };
-export type { CTRFReport, CTRFTest, TestStatus, ConvertOptions, BaseProvider };
+export type {
+  UnifiedReport,
+  UnifiedTestResult,
+  UnifiedTestStatus,
+  ConvertOptions,
+  BaseProvider,
+};

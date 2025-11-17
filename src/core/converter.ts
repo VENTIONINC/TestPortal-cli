@@ -1,9 +1,10 @@
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
-import { CTRFReport } from '@/types/ctrf';
-import { ConvertOptions, BaseProvider } from '@/types/providers';
+import { UnifiedReport } from '@/types/unified-report';
+import { ConvertOptions } from '@/types/providers';
 import { ProviderRegistry } from '@/core/provider-registry';
 import { HttpClient } from '@/utils/http-client';
+import { convertUnifiedToCTRF } from '@/utils/ctrf-converter';
 
 export class Converter {
   private providers: ProviderRegistry;
@@ -14,7 +15,7 @@ export class Converter {
     this.httpClient = new HttpClient();
   }
 
-  async convert(options: ConvertOptions): Promise<CTRFReport> {
+  async convert(options: ConvertOptions): Promise<UnifiedReport> {
     const { input, provider } = options;
 
     await this.validateInputFile(input);
@@ -29,19 +30,19 @@ export class Converter {
       throw new Error(`Invalid ${provider} format in file: ${input}`);
     }
 
-    const ctrfReport = await providerInstance.convert(input);
+    const unifiedReport = await providerInstance.convert(input);
 
-    return ctrfReport;
+    return unifiedReport;
   }
 
   async convertAndSave(options: ConvertOptions): Promise<void> {
-    const ctrfReport = await this.convert(options);
+    const unifiedReport = await this.convert(options);
 
     const webhookPromise = options.webhook
-      ? this.sendWebhook(ctrfReport, options.webhook)
+      ? this.sendWebhook(unifiedReport, options.webhook)
       : Promise.resolve();
 
-    const outputPromise = this.handleOutput(ctrfReport, options);
+    const outputPromise = this.handleOutput(unifiedReport, options);
 
     const [webhookResult] = await Promise.allSettled([
       webhookPromise,
@@ -56,18 +57,26 @@ export class Converter {
   }
 
   private async handleOutput(
-    report: CTRFReport,
+    report: UnifiedReport,
     options: ConvertOptions
   ): Promise<void> {
+    // Convert to CTRF format for output
+    const ctrfReport = await convertUnifiedToCTRF(report);
+
     if (options.stdout) {
-      console.log(JSON.stringify(report, null, 2));
-    } else if (options.output || !options.webhook) {
+      console.log(JSON.stringify(ctrfReport, null, 2));
+    } else if (options.output) {
       const output = this.resolveOutputPath(options);
-      await fs.writeFile(output, JSON.stringify(report, null, 2), 'utf8');
+      await fs.writeFile(output, JSON.stringify(ctrfReport, null, 2), 'utf8');
+    } else if (!options.webhook) {
+      // No webhook configured and no explicit output - fallback to file
+      const output = this.resolveOutputPath(options);
+      await fs.writeFile(output, JSON.stringify(ctrfReport, null, 2), 'utf8');
     }
+    // If webhook is configured but no output/stdout specified, skip file output
   }
 
-  private async sendWebhook(report: CTRFReport, config: any): Promise<void> {
+  private async sendWebhook(report: UnifiedReport, config: any): Promise<void> {
     const response = await this.httpClient.sendWebhook(report, config);
 
     if (!response.success) {
@@ -102,7 +111,7 @@ export class Converter {
     }
 
     const inputPath = resolve(options.input);
-    const ext = inputPath.endsWith('.json') ? '.ctrf.json' : '.ctrf.json';
+    const ext = inputPath.endsWith('.json') ? '.unified.json' : '.unified.json';
     return inputPath.replace(/\.[^/.]+$/, ext);
   }
 

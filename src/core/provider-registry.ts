@@ -1,5 +1,10 @@
-import { BaseProvider } from '@/types/providers';
 import { PlaywrightProvider } from '@/providers/playwright';
+import { CypressProvider } from '@/providers/cypress';
+import { JestProvider } from '@/providers/jest';
+import { JunitProvider } from '@/providers/junit';
+import { VitestProvider } from '@/providers/vitest';
+import { NUnitProvider } from '@/providers/nunit';
+import { BaseProvider } from '@/types/providers';
 
 export class ProviderRegistry {
   private providers: Map<string, BaseProvider> = new Map();
@@ -10,6 +15,11 @@ export class ProviderRegistry {
 
   private registerDefaultProviders(): void {
     this.registerProvider(new PlaywrightProvider());
+    this.registerProvider(new CypressProvider());
+    this.registerProvider(new JestProvider());
+    this.registerProvider(new JunitProvider());
+    this.registerProvider(new VitestProvider());
+    this.registerProvider(new NUnitProvider());
   }
 
   registerProvider(provider: BaseProvider): void {

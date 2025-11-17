@@ -1,0 +1,86 @@
+{
+  "numTotalTestSuites": 2,
+  "numPassedTestSuites": 1,
+  "numFailedTestSuites": 1,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 4,
+  "numPassedTests": 2,
+  "numFailedTests": 1,
+  "numPendingTests": 1,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1761646529949,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "subtraction 4 - 2 to equal 2",
+          "status": "passed",
+          "title": "subtraction 4 - 2 to equal 2",
+          "duration": 0.7601250000000022,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [],
+          "fullName": "subtraction 4 - 0 to equal 0",
+          "status": "skipped",
+          "title": "subtraction 4 - 0 to equal 0",
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [],
+          "fullName": "subtraction 0 - 4 to equal -4",
+          "status": "failed",
+          "title": "subtraction 0 - 4 to equal -4",
+          "duration": 3.1943749999999937,
+          "failureMessages": [
+            "AssertionError: expected 100 to be -4 // Object.is equality\n    at /Users/sviatlana/Documents/test-portal/vitest-junit/subtraction.test.ts:14:29\n    at file:///Users/sviatlana/Documents/test-portal/vitest-junit/node_modules/@vitest/runner/dist/index.js:157:11\n    at file:///Users/sviatlana/Documents/test-portal/vitest-junit/node_modules/@vitest/runner/dist/index.js:753:26\n    at file:///Users/sviatlana/Documents/test-portal/vitest-junit/node_modules/@vitest/runner/dist/index.js:1636:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/sviatlana/Documents/test-portal/vitest-junit/node_modules/@vitest/runner/dist/index.js:1602:10)\n    at runTest (file:///Users/sviatlana/Documents/test-portal/vitest-junit/node_modules/@vitest/runner/dist/index.js:1309:12)\n    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at runSuite (file:///Users/sviatlana/Documents/test-portal/vitest-junit/node_modules/@vitest/runner/dist/index.js:1468:8)\n    at runFiles (file:///Users/sviatlana/Documents/test-portal/vitest-junit/node_modules/@vitest/runner/dist/index.js:1526:3)"
+          ],
+          "meta": {}
+        }
+      ],
+      "startTime": 1761646530086,
+      "endTime": 1761646530090.1943,
+      "status": "failed",
+      "message": "",
+      "name": "/Users/sviatlana/Documents/test-portal/vitest-junit/subtraction.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "adds 1 + 2 to equal 3",
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "duration": 0.7833339999999964,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1761646530086,
+      "endTime": 1761646530086.7834,
+      "status": "passed",
+      "message": "",
+      "name": "/Users/sviatlana/Documents/test-portal/vitest-junit/sum.test.ts"
+    }
+  ]
+}

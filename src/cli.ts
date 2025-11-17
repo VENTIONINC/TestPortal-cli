@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { config as dotenvConfig } from 'dotenv';
+dotenvConfig();
+
 import { Command } from 'commander';
 import { Converter } from '@/core/converter';
 import { ConvertOptions } from '@/types/providers';
@@ -11,8 +14,10 @@ async function main(): Promise<void> {
   const converter = new Converter();
 
   program
-    .name('ctrf-convert')
-    .description('Convert test reports from popular frameworks to CTRF format')
+    .name('test-convert')
+    .description(
+      'Convert test reports from popular frameworks to unified format'
+    )
     .version('1.0.0-alpha.1');
 
   program
@@ -23,10 +28,11 @@ async function main(): Promise<void> {
     )
     .option('-o, --output <path>', 'Write file instead of stdout')
     .option('--stdout', 'Force output to console')
-    .option('--webhook <url>', 'Send report to webhook URL')
+    .option(
+      '--webhook <url>',
+      'Send report to webhook URL (defaults to TEST_PORTAL_URL env var, uses TEST_PORTAL_API_KEY for auth)'
+    )
     .option('--headers <json>', 'Custom headers as JSON string')
-    .option('--auth-token <token>', 'Authentication token')
-    .option('--auth-header <name>', 'Custom authentication header name')
     .option(
       '--method <method>',
       'HTTP method for webhook (POST, PUT, PATCH)',
@@ -44,9 +50,11 @@ async function main(): Promise<void> {
     .action(async options => {
       try {
         let webhookConfig: WebhookConfig | undefined;
-        if (options.webhook) {
+        const webhookUrl = options.webhook || process.env.TEST_PORTAL_URL;
+
+        if (webhookUrl) {
           webhookConfig = {
-            url: options.webhook,
+            url: webhookUrl,
             method: options.method as 'POST' | 'PUT' | 'PATCH',
             timeout: parseInt(options.timeout, 10),
             retries: parseInt(options.retries, 10),
@@ -65,11 +73,6 @@ async function main(): Promise<void> {
               process.exit(1);
             }
           }
-
-          if (options.authToken) {
-            webhookConfig.authToken = options.authToken;
-            webhookConfig.authHeader = options.authHeader;
-          }
         }
 
         const convertOptions: ConvertOptions = {
@@ -84,7 +87,7 @@ async function main(): Promise<void> {
 
         if (!options.stdout && !options.output) {
           console.log(
-            `✅ Successfully converted ${options.input} to CTRF format`
+            `✅ Successfully converted ${options.input} to unified format`
           );
         }
       } catch (error) {
