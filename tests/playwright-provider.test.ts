@@ -8,7 +8,11 @@ describe('PlaywrightProvider', () => {
 
   beforeEach(() => {
     provider = new PlaywrightProvider();
-    testDataDir = join(__dirname, 'test-data', `playwright-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `playwright-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {

@@ -42,12 +42,14 @@
 ## 🖥️ CLI Interface
 
 ### Core CLI Structure
+
 - [x] Set up Commander.js or similar CLI framework
 - [x] Implement argument parsing
 - [x] Add input validation
 - [x] Create help system
 
 ### CLI Commands & Flags
+
 - [x] Implement `--input/-i` flag (required)
 - [x] Implement `--type/-t` flag (required)
 - [x] Implement `--output/-o` flag (optional)
@@ -58,6 +60,7 @@
 - [x] Add output path validation
 
 ### CLI Features
+
 - [x] File input/output handling
 - [x] Stdout streaming support
 - [ ] Progress indicators for large files
@@ -65,6 +68,7 @@
 - [x] Support for relative and absolute paths
 
 ### Remote/Web Integration
+
 - [x] Implement `--webhook <url>` flag for HTTP POST
 - [x] Add `--headers <json>` flag for custom headers
 - [x] Implement `--auth-token <token>` flag for authentication
@@ -88,6 +92,7 @@
 - [x] Create example usage documentation
 
 ### Remote API Support
+
 - [x] Add webhook/HTTP client utilities
 - [x] Extend convert options with webhook parameters
 - [x] Create webhook configuration interface
@@ -98,11 +103,13 @@
 ## 📊 Provider System
 
 ### Current Providers
+
 - [x] Playwright provider (priority)
 
 ### Future Providers (Roadmap)
+
 - [ ] JUnit XML provider architecture
-- [ ] Jest provider architecture  
+- [ ] Jest provider architecture
 - [ ] Mocha provider architecture
 - [x] Provider registration system
 - [x] Provider validation
@@ -110,6 +117,7 @@
 ## ✅ Testing
 
 ### Unit Tests
+
 - [x] Test CTRF schema generation
 - [x] Test Playwright parser
 - [x] Test CLI argument parsing
@@ -117,18 +125,21 @@
 - [x] Test error scenarios
 
 ### Integration Tests
+
 - [x] Test CLI end-to-end workflows
 - [x] Test with real Playwright reports
 - [x] Test output format compliance
 - [x] Test programmatic API
 
 ### Test Data
+
 - [x] Create sample Playwright JSON reports
 - [x] Create expected CTRF outputs
 - [x] Add edge case test files
 - [ ] Create performance test scenarios
 
 ### Remote Integration Tests
+
 - [x] Test webhook HTTP POST functionality
 - [x] Test authentication mechanisms
 - [x] Test error handling for network failures
@@ -150,6 +161,7 @@
 - [x] Create detailed changelog
 
 ### Remote Integration Documentation
+
 - [x] Document webhook configuration
 - [x] Add authentication examples
 - [x] Create integration guides for popular platforms
@@ -177,6 +189,7 @@
 ## 🚀 Release Preparation
 
 ### Version 1.0.0 (MVP)
+
 - [x] Playwright support fully implemented
 - [x] CLI interface complete
 - [x] Programmatic API working
@@ -185,6 +198,7 @@
 - [x] Performance acceptable
 
 ### Future Versions
+
 - [ ] JUnit XML support
 - [ ] Jest support
 - [ ] Mocha support
@@ -210,4 +224,4 @@
 - [ ] Monitor conversion success rates
 - [ ] Track performance metrics
 - [ ] Set up error reporting
-- [ ] Create user feedback system 
+- [ ] Create user feedback system
