@@ -1,0 +1,88 @@
+{
+  "results": {
+    "tool": {
+      "name": "nunit"
+    },
+    "summary": {
+      "tests": 8,
+      "passed": 5,
+      "failed": 2,
+      "skipped": 1,
+      "pending": 0,
+      "other": 0,
+      "start": 1705314600000,
+      "stop": 1705314615000
+    },
+    "tests": [
+      {
+        "name": "CreateUser_WithValidData_ReturnsUser",
+        "status": "passed",
+        "duration": 2145,
+        "suite": "UserServiceTests",
+        "filePath": "MyApp.Tests.UserServiceTests",
+        "rawStatus": "Passed"
+      },
+      {
+        "name": "CreateUser_WithInvalidEmail_ThrowsException",
+        "status": "passed",
+        "duration": 1987,
+        "suite": "UserServiceTests",
+        "filePath": "MyApp.Tests.UserServiceTests",
+        "rawStatus": "Passed"
+      },
+      {
+        "name": "GetUser_WithExistingId_ReturnsUser",
+        "status": "failed",
+        "duration": 2234,
+        "suite": "UserServiceTests",
+        "filePath": "MyApp.Tests.UserServiceTests",
+        "rawStatus": "Failed",
+        "message": "  Expected: User with ID 123\n  But was:  null\n",
+        "trace": "   at MyApp.Tests.UserServiceTests.GetUser_WithExistingId_ReturnsUser() in C:\\Projects\\MyProject\\Tests\\UserServiceTests.cs:line 45\n   at NUnit.Framework.Internal.TaskAwaitAdapter.GenericAdapter`1.GetResult()\n   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await(Func`1 invoke)\n   at NUnit.Framework.Internal.Commands.TestMethodCommand.RunTestMethod(TestExecutionContext context)\n"
+      },
+      {
+        "name": "UpdateUser_WithValidData_ReturnsTrue",
+        "status": "passed",
+        "duration": 1756,
+        "suite": "UserServiceTests",
+        "filePath": "MyApp.Tests.UserServiceTests",
+        "rawStatus": "Passed"
+      },
+      {
+        "name": "DeleteUser_WithNonExistentId_ReturnsFalse",
+        "status": "failed",
+        "duration": 2001,
+        "suite": "UserServiceTests",
+        "filePath": "MyApp.Tests.UserServiceTests",
+        "rawStatus": "Failed",
+        "message": "System.NullReferenceException : Object reference not set to an instance of an object.",
+        "trace": "   at MyApp.Services.UserService.DeleteUser(Int32 id) in C:\\Projects\\MyProject\\Services\\UserService.cs:line 89\n   at MyApp.Tests.UserServiceTests.DeleteUser_WithNonExistentId_ReturnsFalse() in C:\\Projects\\MyProject\\Tests\\UserServiceTests.cs:line 78\n"
+      },
+      {
+        "name": "Login_WithValidCredentials_ReturnsToken",
+        "status": "passed",
+        "duration": 2345,
+        "suite": "AuthenticationTests",
+        "filePath": "MyApp.Tests.AuthenticationTests",
+        "rawStatus": "Passed"
+      },
+      {
+        "name": "Login_WithInvalidPassword_ThrowsException",
+        "status": "passed",
+        "duration": 1766,
+        "suite": "AuthenticationTests",
+        "filePath": "MyApp.Tests.AuthenticationTests",
+        "rawStatus": "Passed"
+      },
+      {
+        "name": "RefreshToken_Integration_Test",
+        "status": "skipped",
+        "duration": 0,
+        "suite": "AuthenticationTests",
+        "filePath": "MyApp.Tests.AuthenticationTests",
+        "rawStatus": "Skipped"
+      }
+    ],
+    "environment": {}
+  }
+}

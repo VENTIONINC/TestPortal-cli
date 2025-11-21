@@ -1,0 +1,35 @@
+{
+  "results": {
+    "tool": {
+      "name": "playwright",
+      "version": "1.49.1"
+    },
+    "summary": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "pending": 0,
+      "skipped": 0,
+      "other": 0,
+      "start": 1749624991555,
+      "stop": 1749625582803.6
+    },
+    "tests": [
+      {
+        "name": "<C1002> <REN-8720> Validate MA E&S specific Policy Documents @monolith-nightly-group-6",
+        "status": "passed",
+        "duration": 539665,
+        "suite": "rn-monolith/ui/manual.validate.policy.documents.spec.ts › Policy Documents validation on Monolith @low-code-e&s",
+        "filePath": "rn-monolith/ui/manual.validate.policy.documents.spec.ts",
+        "rawStatus": "flaky",
+        "tags": [
+          "low-code-e&s",
+          "monolith-nightly-group-6"
+        ],
+        "retry": 1,
+        "flaky": true
+      }
+    ],
+    "environment": {}
+  }
+}
