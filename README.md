@@ -8,7 +8,7 @@ A powerful CLI tool and programmatic library for converting test reports from po
 
 ## ✨ Features
 
-- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit
+- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit, Mocha
 - 📊 **CTRF format**: Common Test Report Format for consistent structure
 - 🚀 **CLI & Programmatic**: Use as command-line tool or Node.js library
 - 🌐 **Webhook delivery**: Send reports to remote endpoints with retry logic
@@ -84,7 +84,7 @@ console.log('Conversion complete!', report);
 ### Required Options
 
 - `-i, --input <path>` - Path to source report file
-- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit
+- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit, mocha
 
 ### Output Options
 
@@ -186,7 +186,7 @@ import { convert, Converter } from 'test-report-converter';
 const converter = new Converter();
 
 // Check available providers
-console.log(converter.getAvailableProviders()); // ['jest', 'playwright', 'cypress', 'junit']
+console.log(converter.getAvailableProviders()); // ['jest', 'playwright', 'cypress', 'junit', 'vitest', 'nunit', 'mocha']
 
 // Convert with full options
 await converter.convertAndSave({

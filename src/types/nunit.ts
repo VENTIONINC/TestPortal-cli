@@ -3,7 +3,12 @@
  * Based on NUnit 3.x XML output format
  */
 
-export type NUnitStatus = 'Passed' | 'Failed' | 'Skipped' | 'Inconclusive' | 'Warning';
+export type NUnitStatus =
+  | 'Passed'
+  | 'Failed'
+  | 'Skipped'
+  | 'Inconclusive'
+  | 'Warning';
 
 export interface NUnitFailure {
   message?: string;
