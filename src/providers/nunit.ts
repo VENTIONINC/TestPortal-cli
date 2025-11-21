@@ -142,7 +142,9 @@ export class NUnitProvider implements BaseProvider {
       startTime: test['@_start-time'],
       endTime: test['@_end-time'],
       tags: [],
-      assertions: test['@_asserts'] ? parseInt(test['@_asserts'], 10) : undefined,
+      assertions: test['@_asserts']
+        ? parseInt(test['@_asserts'], 10)
+        : undefined,
       results: [attempt],
     };
   }

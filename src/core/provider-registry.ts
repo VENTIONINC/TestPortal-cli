@@ -4,6 +4,7 @@ import { JestProvider } from '@/providers/jest';
 import { JunitProvider } from '@/providers/junit';
 import { VitestProvider } from '@/providers/vitest';
 import { NUnitProvider } from '@/providers/nunit';
+import { PytestProvider } from '@/providers/pytest';
 import { BaseProvider } from '@/types/providers';
 
 export class ProviderRegistry {
@@ -20,6 +21,7 @@ export class ProviderRegistry {
     this.registerProvider(new JunitProvider());
     this.registerProvider(new VitestProvider());
     this.registerProvider(new NUnitProvider());
+    this.registerProvider(new PytestProvider());
   }
 
   registerProvider(provider: BaseProvider): void {
