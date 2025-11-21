@@ -1,8 +1,8 @@
 # 🧪 Test Report Converter
 
-[![npm version](https://badge.fury.io/js/test-report-converter.svg)](https://badge.fury.io/js/test-report-converter)
+[![npm version](https://img.shields.io/npm/v/@vention-test-portal/test-portal-integration-cli)](https://www.npmjs.com/package/@vention-test-portal/test-portal-integration-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/user/test-report-converter/workflows/Tests/badge.svg)](https://github.com/user/test-report-converter/actions)
+[![Tests](https://github.com/Vention-Test-Portal/test-portal-integration-cli/workflows/Tests/badge.svg)](https://github.com/Vention-Test-Portal/test-portal-integration-cli/actions)
 
 A powerful CLI tool and programmatic library for converting test reports from popular testing frameworks to unified format. Supports both local file output and remote webhook delivery with comprehensive retry logic and authentication.
 
@@ -423,8 +423,8 @@ test_report_conversion:
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/user/test-report-converter.git
-cd test-report-converter
+git clone https://github.com/Vention-Test-Portal/test-portal-integration-cli.git
+cd test-portal-integration-cli
 npm install
 
 # Copy .env.example to .env and configure
@@ -440,7 +440,7 @@ npm test
 npm run dev -- -i examples/vitest-report-with-env.json -t vitest -o output.json
 
 # Run CLI after building
-node dist/src/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
+node dist/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
 ```
 
 ## 📋 Requirements
@@ -467,9 +467,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🔗 Links
 
-- [Create an issue](https://github.com/user/test-report-converter/issues)
-- [View existing issues](https://github.com/user/test-report-converter/issues)
-- [Check documentation](https://github.com/user/test-report-converter/wiki)
+- [Create an issue](https://github.com/Vention-Test-Portal/test-portal-integration-cli/issues)
+- [View existing issues](https://github.com/Vention-Test-Portal/test-portal-integration-cli/issues)
+- [Check documentation](https://github.com/Vention-Test-Portal/test-portal-integration-cli/wiki)
 
 ## 🙏 Acknowledgments
 
