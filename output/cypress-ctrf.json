@@ -1,0 +1,123 @@
+{
+  "results": {
+    "tool": {
+      "name": "cypress",
+      "version": "7.1.3"
+    },
+    "summary": {
+      "tests": 12,
+      "passed": 8,
+      "failed": 3,
+      "pending": 1,
+      "skipped": 0,
+      "other": 0,
+      "start": 1703773800123,
+      "stop": 1703774025567
+    },
+    "tests": [
+      {
+        "name": "should login with valid credentials",
+        "status": "passed",
+        "duration": 3456,
+        "suite": "login",
+        "filePath": "cypress/e2e/auth/login.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should show error for invalid credentials",
+        "status": "passed",
+        "duration": 2789,
+        "suite": "login",
+        "filePath": "cypress/e2e/auth/login.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should handle password reset flow",
+        "status": "failed",
+        "duration": 8934,
+        "suite": "login",
+        "filePath": "cypress/e2e/auth/login.cy.js",
+        "rawStatus": "failed",
+        "message": "Timed out retrying after 4000ms: Expected to find element: `[data-cy=success-message]`, but never found it.",
+        "trace": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=success-message]`, but never found it.\n    at Context.eval (webpack:///./cypress/e2e/auth/login.cy.js:23:8)"
+      },
+      {
+        "name": "should add item to cart",
+        "status": "passed",
+        "duration": 4567,
+        "suite": "cart",
+        "filePath": "cypress/e2e/ecommerce/cart.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should remove item from cart",
+        "status": "passed",
+        "duration": 3234,
+        "suite": "cart",
+        "filePath": "cypress/e2e/ecommerce/cart.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should complete checkout process",
+        "status": "failed",
+        "duration": 30000,
+        "suite": "cart",
+        "filePath": "cypress/e2e/ecommerce/cart.cy.js",
+        "rawStatus": "failed",
+        "message": "cy.click() failed because this element is not visible:\n\n`<button data-cy=\"submit-payment\" disabled=\"\">Processing...</button>`\n\nThis element `<button>` is not visible because it has CSS property: `display: none`\n\nFix this problem, or use {force: true} to disable error checking.\n\nhttps://on.cypress.io/element-not-visible",
+        "trace": "CypressError: cy.click() failed because this element is not visible:\n\n`<button data-cy=\"submit-payment\" disabled=\"\">Processing...</button>`\n\nThis element `<button>` is not visible because it has CSS property: `display: none`\n\nFix this problem, or use {force: true} to disable error checking.\n\nhttps://on.cypress.io/element-not-visible\n    at Context.eval (webpack:///./cypress/e2e/ecommerce/cart.cy.js:45:8)"
+      },
+      {
+        "name": "should search for products",
+        "status": "passed",
+        "duration": 2345,
+        "suite": "search",
+        "filePath": "cypress/e2e/ui/search.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should handle empty search results",
+        "status": "passed",
+        "duration": 1876,
+        "suite": "search",
+        "filePath": "cypress/e2e/ui/search.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should filter search results",
+        "status": "pending",
+        "duration": 0,
+        "suite": "search",
+        "filePath": "cypress/e2e/ui/search.cy.js",
+        "rawStatus": "pending"
+      },
+      {
+        "name": "should display mobile menu on small screens",
+        "status": "passed",
+        "duration": 3456,
+        "suite": "responsive",
+        "filePath": "cypress/e2e/ui/responsive.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should display desktop navigation on large screens",
+        "status": "passed",
+        "duration": 2145,
+        "suite": "responsive",
+        "filePath": "cypress/e2e/ui/responsive.cy.js",
+        "rawStatus": "passed"
+      },
+      {
+        "name": "should handle tablet layout correctly",
+        "status": "failed",
+        "duration": 5678,
+        "suite": "responsive",
+        "filePath": "cypress/e2e/ui/responsive.cy.js",
+        "rawStatus": "failed",
+        "message": "AssertionError: expected '0px' to equal '250px'\n\n+ expected - actual\n\n-0px\n+250px\n",
+        "trace": "AssertionError: expected '0px' to equal '250px'\n\n+ expected - actual\n\n-0px\n+250px\n\n    at Context.eval (webpack:///./cypress/e2e/ui/responsive.cy.js:34:8)"
+      }
+    ],
+    "environment": {}
+  }
+}

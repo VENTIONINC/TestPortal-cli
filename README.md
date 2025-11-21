@@ -20,8 +20,6 @@ A powerful CLI tool and programmatic library for converting test reports from po
 
 ### Global Installation (CLI)
 
-### Global CLI Installation
-
 ```bash
 npm install -g test-report-converter
 ```
@@ -297,6 +295,7 @@ The tool generates unified format reports with consistent structure:
 - Handles skipped tests correctly
 
 ### Pytest
+
 - Supports pytest-json-report plugin format
 - Maps xfailed (expected failures) to skipped status
 - Maps xpassed (unexpected passes) to passed status
@@ -376,7 +375,7 @@ npm test
 npm run dev -- -i examples/vitest-report-with-env.json -t vitest -o output.json
 
 # Run CLI after building
-node dist/src/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
+node dist/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
 ```
 
 ## 📋 Requirements

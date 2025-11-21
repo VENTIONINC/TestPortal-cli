@@ -3,6 +3,7 @@
   "version": "1.0.0-alpha.1",
   "description": "A lightweight Node.js CLI utility that converts test reports from popular frameworks to unified format",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "test-convert": "dist/cli.js"
   },
@@ -12,7 +13,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "dev": "ts-node src/cli.ts",
     "test": "jest",
     "test:watch": "jest --watch",
