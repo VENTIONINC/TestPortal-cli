@@ -21,15 +21,17 @@ This document provides detailed API documentation for all classes, interfaces, a
 The primary function for converting test reports to unified format.
 
 ```typescript
-function convert(options: ConvertOptions): Promise<UnifiedReport>
+function convert(options: ConvertOptions): Promise<UnifiedReport>;
 ```
 
 **Parameters:**
+
 - `options` (ConvertOptions): Configuration object for conversion
 
 **Returns:** `Promise<UnifiedReport>` - The converted unified report
 
 **Example:**
+
 ```typescript
 import { convert } from 'test-report-converter';
 
@@ -39,8 +41,8 @@ const report = await convert({
   output: './unified-report.json',
   webhook: {
     url: 'https://api.example.com/reports',
-    authToken: 'your-token'
-  }
+    authToken: 'your-token',
+  },
 });
 ```
 
@@ -53,7 +55,7 @@ Main converter class that handles the conversion process.
 #### Constructor
 
 ```typescript
-new Converter()
+new Converter();
 ```
 
 Creates a new Converter instance with default configuration.
@@ -65,11 +67,13 @@ Creates a new Converter instance with default configuration.
 Converts a test report to unified format.
 
 **Parameters:**
+
 - `options` (ConvertOptions): Configuration for the conversion
 
 **Returns:** `Promise<UnifiedReport>` - The converted report
 
 **Example:**
+
 ```typescript
 import { Converter } from 'test-report-converter';
 
@@ -86,11 +90,13 @@ const report = await converter.convert({
 Converts a test report and saves/sends it according to the options.
 
 **Parameters:**
+
 - `options` (ConvertOptions): Configuration including output and webhook options
 
 **Returns:** `Promise<void>`
 
 **Example:**
+
 ```typescript
 const converter = new Converter();
 await converter.convertAndSave({
@@ -98,8 +104,8 @@ await converter.convertAndSave({
   provider: 'playwright',
   output: './unified-report.json',
   webhook: {
-    url: 'https://api.example.com/webhook'
-  }
+    url: 'https://api.example.com/webhook',
+  },
 });
 ```
 
@@ -110,6 +116,7 @@ Returns a list of available test framework providers.
 **Returns:** `string[]` - Array of provider names
 
 **Example:**
+
 ```typescript
 const converter = new Converter();
 const providers = converter.getAvailableProviders();
@@ -123,7 +130,7 @@ HTTP client for webhook delivery with retry logic.
 #### Constructor
 
 ```typescript
-new HttpClient()
+new HttpClient();
 ```
 
 #### Methods
@@ -133,12 +140,14 @@ new HttpClient()
 Sends a unified report to a webhook endpoint.
 
 **Parameters:**
+
 - `report` (UnifiedReport): The unified report to send
 - `config` (WebhookConfig): Webhook configuration
 
 **Returns:** `Promise<WebhookResponse>` - Response from the webhook
 
 **Example:**
+
 ```typescript
 import { HttpClient } from 'test-report-converter';
 
@@ -147,7 +156,7 @@ const response = await client.sendWebhook(report, {
   url: 'https://api.example.com/webhook',
   method: 'POST',
   authToken: 'your-token',
-  retries: 3
+  retries: 3,
 });
 ```
 
@@ -208,13 +217,13 @@ interface UnifiedTestResult {
   results: UnifiedTestAttempt[];
 }
 
-type UnifiedTestStatus = 
-  | 'passed' 
-  | 'failed' 
-  | 'skipped' 
-  | 'pending' 
-  | 'todo' 
-  | 'timeout' 
+type UnifiedTestStatus =
+  | 'passed'
+  | 'failed'
+  | 'skipped'
+  | 'pending'
+  | 'todo'
+  | 'timeout'
   | 'interrupted';
 
 interface UnifiedTestAttempt {
@@ -244,10 +253,10 @@ Configuration options for conversion.
 
 ```typescript
 interface ConvertOptions {
-  input: string;           // Path to input test report file
-  output?: string;         // Path for output file (optional)
-  provider: string;        // Test framework provider name
-  stdout?: boolean;        // Output to console instead of file
+  input: string; // Path to input test report file
+  output?: string; // Path for output file (optional)
+  provider: string; // Test framework provider name
+  stdout?: boolean; // Output to console instead of file
   webhook?: WebhookConfig; // Webhook configuration (optional)
 }
 ```
@@ -258,15 +267,15 @@ Configuration for webhook delivery.
 
 ```typescript
 interface WebhookConfig {
-  url: string;                           // Webhook URL
-  method?: 'POST' | 'PUT' | 'PATCH';     // HTTP method (default: POST)
-  headers?: Record<string, string>;      // Custom headers
-  authToken?: string;                    // Authentication token
-  authHeader?: string;                   // Custom auth header name
-  timeout?: number;                      // Request timeout in ms
-  retries?: number;                      // Number of retry attempts
-  retryDelay?: number;                   // Delay between retries in ms
-  verifySSL?: boolean;                   // Verify SSL certificates
+  url: string; // Webhook URL
+  method?: 'POST' | 'PUT' | 'PATCH'; // HTTP method (default: POST)
+  headers?: Record<string, string>; // Custom headers
+  authToken?: string; // Authentication token
+  authHeader?: string; // Custom auth header name
+  timeout?: number; // Request timeout in ms
+  retries?: number; // Number of retry attempts
+  retryDelay?: number; // Delay between retries in ms
+  verifySSL?: boolean; // Verify SSL certificates
 }
 ```
 
@@ -276,11 +285,11 @@ Response from webhook delivery.
 
 ```typescript
 interface WebhookResponse {
-  success: boolean;        // Whether the request succeeded
-  status: number;          // HTTP status code
-  statusText: string;      // HTTP status text
-  data?: any;             // Response data
-  error?: string;         // Error message if failed
+  success: boolean; // Whether the request succeeded
+  status: number; // HTTP status code
+  statusText: string; // HTTP status text
+  data?: any; // Response data
+  error?: string; // Error message if failed
 }
 ```
 
@@ -298,32 +307,38 @@ interface WebhookResponse {
 ### Provider-Specific Notes
 
 #### Jest Provider
+
 - Supports Jest JSON reports
 - Includes coverage information when available
 - Maps Jest-specific statuses (todo, pending)
 
 #### Playwright Provider
+
 - Supports Playwright JSON reporter output
 - Handles retry attempts and flaky tests
 - Includes project and browser information
 - Extracts runId when available
 
 #### Cypress Provider
+
 - Supports mochawesome JSON format
 - Includes basic test information
 - Maps Cypress-specific statuses
 
 #### JUnit Provider
+
 - Supports standard JUnit XML format
 - Handles both single testsuite and testsuites formats
 - Maps XML attributes to unified format
 
 #### Vitest Provider
+
 - Supports Vitest JSON reports (Jest-compatible format)
 - Maps Vitest-specific statuses (passed, failed, skipped, pending, todo)
 - Extracts error messages and stack traces
 
 #### NUnit Provider
+
 - Supports NUnit XML format
 - Handles NUnit test result files
 - Maps NUnit-specific statuses
@@ -333,7 +348,7 @@ interface WebhookResponse {
 ### Common Errors
 
 - **FileNotFoundError**: Input file doesn't exist
-- **InvalidProviderError**: Unsupported provider specified  
+- **InvalidProviderError**: Unsupported provider specified
 - **InvalidFormatError**: Input file format incompatible with provider
 - **WebhookError**: Webhook delivery failed
 - **ValidationError**: Report data validation failed
@@ -344,7 +359,7 @@ interface WebhookResponse {
 try {
   const report = await convert({
     input: './results.json',
-    provider: 'playwright'
+    provider: 'playwright',
   });
 } catch (error) {
   if (error.message.includes('Input file not found')) {
@@ -368,7 +383,7 @@ import { convert } from 'test-report-converter';
 const report = await convert({
   input: './playwright-results.json',
   provider: 'playwright',
-  output: './unified-report.json'
+  output: './unified-report.json',
 });
 
 console.log(`Converted ${report.stats.total} tests`);
@@ -389,11 +404,11 @@ await convert({
     authToken: 'Bearer your-token',
     headers: {
       'X-Team': 'qa',
-      'X-Environment': 'production'
+      'X-Environment': 'production',
     },
     retries: 3,
-    timeout: 30000
-  }
+    timeout: 30000,
+  },
 });
 ```
 
@@ -420,8 +435,8 @@ try {
       retries: 5,
       retryDelay: 2000,
       timeout: 60000,
-      verifySSL: false
-    }
+      verifySSL: false,
+    },
   });
 
   console.log('✅ Conversion and delivery completed');
@@ -435,11 +450,11 @@ try {
 The library is written in TypeScript and provides full type definitions. All interfaces and types are exported for use in TypeScript projects.
 
 ```typescript
-import type { 
-  UnifiedReport, 
-  ConvertOptions, 
+import type {
+  UnifiedReport,
+  ConvertOptions,
   WebhookConfig,
   UnifiedTestResult,
-  UnifiedTestStatus 
+  UnifiedTestStatus,
 } from 'test-report-converter';
-``` 
+```

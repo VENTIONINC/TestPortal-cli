@@ -142,6 +142,7 @@ export const UnifiedReportSchema = z.object({
     'vitest',
     'nunit',
     'mocha',
+    'pytest',
     'other',
   ]),
   frameworkVersion: z.string().optional(),

@@ -8,7 +8,7 @@ A powerful CLI tool and programmatic library for converting test reports from po
 
 ## ✨ Features
 
-- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit, Mocha
+- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit, Mocha, Pytest
 - 📊 **CTRF format**: Common Test Report Format for consistent structure
 - 🚀 **CLI & Programmatic**: Use as command-line tool or Node.js library
 - 🌐 **Webhook delivery**: Send reports to remote endpoints with retry logic
@@ -19,6 +19,8 @@ A powerful CLI tool and programmatic library for converting test reports from po
 ## 🚀 Installation
 
 ### Global Installation (CLI)
+
+### Global CLI Installation
 
 ```bash
 npm install -g test-report-converter
@@ -35,6 +37,8 @@ npm install test-report-converter
 ### Environment Configuration
 
 Create a `.env` file in your project root to configure default webhook settings:
+
+### CLI Usage
 
 ```bash
 # Test Portal URL - Default webhook URL for sending test reports
@@ -73,7 +77,7 @@ import { convert } from 'test-report-converter';
 const report = await convert({
   input: './playwright-results.json',
   provider: 'playwright',
-  output: './unified-report.json'
+  output: './unified-report.json',
 });
 
 console.log('Conversion complete!', report);
@@ -84,7 +88,7 @@ console.log('Conversion complete!', report);
 ### Required Options
 
 - `-i, --input <path>` - Path to source report file
-- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit, mocha
+- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit, mocha, pytest
 
 ### Output Options
 
@@ -158,7 +162,7 @@ import { convert } from 'test-report-converter';
 const report = await convert({
   input: './test-results.json',
   provider: 'playwright',
-  output: './unified-report.json'
+  output: './unified-report.json',
 });
 ```
 
@@ -173,8 +177,8 @@ const report = await convert({
   webhook: {
     url: 'https://api.example.com/reports',
     authToken: 'your-api-token',
-    retries: 3
-  }
+    retries: 3,
+  },
 });
 ```
 
@@ -186,7 +190,7 @@ import { convert, Converter } from 'test-report-converter';
 const converter = new Converter();
 
 // Check available providers
-console.log(converter.getAvailableProviders()); // ['jest', 'playwright', 'cypress', 'junit', 'vitest', 'nunit', 'mocha']
+console.log(converter.getAvailableProviders()); // ['jest', 'playwright', 'cypress', 'junit', 'vitest', 'nunit', 'mocha', 'pytest']
 
 // Convert with full options
 await converter.convertAndSave({
@@ -200,9 +204,9 @@ await converter.convertAndSave({
     retries: 5,
     retryDelay: 2000,
     headers: {
-      'X-API-Key': 'your-key'
-    }
-  }
+      'X-API-Key': 'your-key',
+    },
+  },
 });
 ```
 
@@ -210,14 +214,15 @@ await converter.convertAndSave({
 
 ### Status Mapping
 
-| Framework | Unified Status | Notes |
-|-----------|----------------|-------|
-| Jest | passed, failed, pending, todo | Standard Jest statuses |
-| Playwright | passed, failed, skipped, timeout, interrupted | Includes flaky test handling |
-| Cypress | passed, failed, pending | Basic Cypress statuses |
-| JUnit | passed, failed, skipped | XML format support |
-| Vitest | passed, failed, skipped, pending, todo | Jest-compatible format |
-| NUnit | passed, failed, skipped | XML format support |
+| Framework  | Unified Status                                | Notes                                         |
+| ---------- | --------------------------------------------- | --------------------------------------------- |
+| Jest       | passed, failed, pending, todo                 | Standard Jest statuses                        |
+| Playwright | passed, failed, skipped, timeout, interrupted | Includes flaky test handling                  |
+| Cypress    | passed, failed, pending                       | Basic Cypress statuses                        |
+| JUnit      | passed, failed, skipped                       | XML format support                            |
+| Vitest     | passed, failed, skipped, pending, todo        | Jest-compatible format                        |
+| NUnit      | passed, failed, skipped                       | XML format support                            |
+| Pytest     | passed, failed, skipped                       | xfailed→skipped, xpassed→passed, error→failed |
 
 ## 📊 Unified Output Format
 
@@ -268,24 +273,37 @@ The tool generates unified format reports with consistent structure:
 ## 🔧 Framework Specific Notes
 
 ### Playwright
+
 - Supports retry attempts and flaky test detection
 - Includes project information and browser details
 - Maps unexpected status to failed
 
 ### Jest
+
 - Includes coverage information when available
 - Maps todo tests to todo status
 - Aggregates assertion counts
 
 ### Cypress
+
 - Supports mochawesome report format
 - Includes screenshot and video references
 - Maps pending tests appropriately
 
 ### JUnit
+
 - Supports both single testsuite and testsuites formats
 - Maps errors to failed status
 - Handles skipped tests correctly
+
+### Pytest
+- Supports pytest-json-report plugin format
+- Maps xfailed (expected failures) to skipped status
+- Maps xpassed (unexpected passes) to passed status
+- Maps error outcomes to failed status
+- Aggregates durations from setup/call/teardown stages
+- Extracts errors from stage failures with traceback
+- Groups tests by file into suites
 
 ## 📝 Example Output
 

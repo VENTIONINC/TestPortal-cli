@@ -25,4 +25,5 @@ export type SupportedProvider =
   | 'jest'
   | 'mocha'
   | 'vitest'
-  | 'nunit';
+  | 'nunit'
+  | 'pytest';
