@@ -1,0 +1,235 @@
+{
+  "created": 1700000000.123,
+  "duration": 5.456,
+  "exitcode": 1,
+  "root": "/Users/developer/projects/my-app",
+  "environment": {
+    "Python": "3.11.0",
+    "Platform": "Darwin-23.0.0-arm64-arm-64bit",
+    "Packages": {
+      "pytest": "7.4.3",
+      "pytest-json-report": "1.5.0"
+    }
+  },
+  "summary": {
+    "total": 12,
+    "passed": 5,
+    "failed": 3,
+    "skipped": 1,
+    "xfailed": 1,
+    "xpassed": 1,
+    "error": 1,
+    "collected": 12,
+    "deselected": 0
+  },
+  "collectors": [],
+  "tests": [
+    {
+      "nodeid": "tests/test_auth.py::test_successful_login",
+      "lineno": 10,
+      "outcome": "passed",
+      "keywords": ["test_successful_login", "test_auth.py", "tests"],
+      "setup": {
+        "outcome": "passed",
+        "duration": 0.001
+      },
+      "call": {
+        "outcome": "passed",
+        "duration": 0.123,
+        "stdout": "Login successful\n"
+      },
+      "teardown": {
+        "outcome": "passed",
+        "duration": 0.001
+      }
+    },
+    {
+      "nodeid": "tests/test_auth.py::test_invalid_credentials",
+      "lineno": 20,
+      "outcome": "failed",
+      "keywords": ["test_invalid_credentials", "test_auth.py", "tests"],
+      "setup": {
+        "outcome": "passed",
+        "duration": 0.001
+      },
+      "call": {
+        "outcome": "failed",
+        "duration": 0.234,
+        "longrepr": "AssertionError: Expected login to fail with invalid credentials\nassert response.status_code == 401\n  + where 200 = response.status_code",
+        "traceback": [
+          {
+            "path": "/Users/developer/projects/my-app/tests/test_auth.py",
+            "lineno": 24,
+            "message": "AssertionError"
+          }
+        ]
+      },
+      "teardown": {
+        "outcome": "passed",
+        "duration": 0.001
+      }
+    },
+    {
+      "nodeid": "tests/test_auth.py::test_logout",
+      "lineno": 30,
+      "outcome": "passed",
+      "keywords": ["test_logout", "test_auth.py", "tests"],
+      "call": {
+        "outcome": "passed",
+        "duration": 0.089
+      }
+    },
+    {
+      "nodeid": "tests/test_database.py::TestUserModel::test_create_user",
+      "lineno": 15,
+      "outcome": "passed",
+      "keywords": ["TestUserModel", "test_create_user", "test_database.py", "tests"],
+      "setup": {
+        "outcome": "passed",
+        "duration": 0.005
+      },
+      "call": {
+        "outcome": "passed",
+        "duration": 0.456,
+        "stdout": "User created successfully\n"
+      },
+      "teardown": {
+        "outcome": "passed",
+        "duration": 0.003
+      }
+    },
+    {
+      "nodeid": "tests/test_database.py::TestUserModel::test_delete_user",
+      "lineno": 25,
+      "outcome": "error",
+      "keywords": ["TestUserModel", "test_delete_user", "test_database.py", "tests"],
+      "setup": {
+        "outcome": "error",
+        "duration": 0.002,
+        "longrepr": "fixture 'db_connection' not found",
+        "crash": {
+          "path": "/Users/developer/projects/my-app/tests/conftest.py",
+          "lineno": 42,
+          "message": "fixture 'db_connection' not found"
+        }
+      }
+    },
+    {
+      "nodeid": "tests/test_api.py::test_get_users",
+      "lineno": 8,
+      "outcome": "passed",
+      "keywords": ["test_get_users", "test_api.py", "tests"],
+      "call": {
+        "outcome": "passed",
+        "duration": 0.678
+      }
+    },
+    {
+      "nodeid": "tests/test_api.py::test_create_post",
+      "lineno": 18,
+      "outcome": "failed",
+      "keywords": ["test_create_post", "test_api.py", "tests"],
+      "setup": {
+        "outcome": "passed",
+        "duration": 0.001
+      },
+      "call": {
+        "outcome": "failed",
+        "duration": 0.345,
+        "longrepr": "KeyError: 'title'\n  File \"/Users/developer/projects/my-app/tests/test_api.py\", line 22, in test_create_post\n    assert response.json()['title'] == 'Test Post'",
+        "traceback": [
+          {
+            "path": "/Users/developer/projects/my-app/tests/test_api.py",
+            "lineno": 22,
+            "message": "KeyError: 'title'"
+          }
+        ]
+      },
+      "teardown": {
+        "outcome": "passed",
+        "duration": 0.001
+      }
+    },
+    {
+      "nodeid": "tests/test_api.py::test_delete_post",
+      "lineno": 28,
+      "outcome": "skipped",
+      "keywords": ["test_delete_post", "test_api.py", "tests", "skip"],
+      "setup": {
+        "outcome": "skipped"
+      },
+      "call": {
+        "outcome": "skipped",
+        "longrepr": "Skipped: Not implemented yet"
+      }
+    },
+    {
+      "nodeid": "tests/test_utils.py::test_format_date[2023-01-01]",
+      "lineno": 10,
+      "outcome": "passed",
+      "keywords": ["test_format_date", "test_utils.py", "tests", "parametrize"],
+      "call": {
+        "outcome": "passed",
+        "duration": 0.012
+      }
+    },
+    {
+      "nodeid": "tests/test_utils.py::test_format_date[2023-12-31]",
+      "lineno": 10,
+      "outcome": "passed",
+      "keywords": ["test_format_date", "test_utils.py", "tests", "parametrize"],
+      "call": {
+        "outcome": "passed",
+        "duration": 0.013
+      }
+    },
+    {
+      "nodeid": "tests/test_edge_cases.py::test_known_bug",
+      "lineno": 5,
+      "outcome": "xfailed",
+      "keywords": ["test_known_bug", "test_edge_cases.py", "tests", "xfail"],
+      "call": {
+        "outcome": "failed",
+        "duration": 0.056,
+        "longrepr": "Expected failure: This is a known bug that will be fixed later"
+      }
+    },
+    {
+      "nodeid": "tests/test_edge_cases.py::test_unexpected_pass",
+      "lineno": 12,
+      "outcome": "xpassed",
+      "keywords": ["test_unexpected_pass", "test_edge_cases.py", "tests", "xfail"],
+      "call": {
+        "outcome": "passed",
+        "duration": 0.034
+      }
+    },
+    {
+      "nodeid": "tests/test_teardown_failure.py::test_with_bad_teardown",
+      "lineno": 7,
+      "outcome": "failed",
+      "keywords": ["test_with_bad_teardown", "test_teardown_failure.py", "tests"],
+      "setup": {
+        "outcome": "passed",
+        "duration": 0.001
+      },
+      "call": {
+        "outcome": "passed",
+        "duration": 0.045
+      },
+      "teardown": {
+        "outcome": "failed",
+        "duration": 0.002,
+        "longrepr": "Exception: Failed to cleanup resources",
+        "traceback": [
+          {
+            "path": "/Users/developer/projects/my-app/tests/conftest.py",
+            "lineno": 78,
+            "message": "Exception: Failed to cleanup resources"
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": []
+}

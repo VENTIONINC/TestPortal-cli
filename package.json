@@ -1,10 +1,13 @@
 {
-  "name": "test-report-converter",
+  "name": "@vention-test-portal/test-portal-integration-cli",
   "version": "1.0.0-alpha.1",
   "description": "A lightweight Node.js CLI utility that converts test reports from popular frameworks to unified format",
   "main": "dist/index.js",
   "bin": {
-    "test-convert": "dist/cli.js"
+    "test-portal-cli": "dist/cli.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "files": [
     "dist/**/*",
@@ -12,7 +15,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "dev": "ts-node src/cli.ts",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -37,7 +40,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com.vizit:iharMikailau/test-portal-integration-cli.git"
+    "url": "git+https://github.com/Vention-Test-Portal/test-portal-integration-cli.git"
   },
   "author": "iharMikailau",
   "license": "MIT",
