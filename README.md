@@ -1,8 +1,8 @@
 # 🧪 Test Report Converter
 
-[![npm version](https://badge.fury.io/js/test-report-converter.svg)](https://badge.fury.io/js/test-report-converter)
+[![npm version](https://img.shields.io/npm/v/@vention-test-portal/test-portal-integration-cli)](https://www.npmjs.com/package/@vention-test-portal/test-portal-integration-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/user/test-report-converter/workflows/Tests/badge.svg)](https://github.com/user/test-report-converter/actions)
+[![Tests](https://github.com/Vention-Test-Portal/test-portal-integration-cli/workflows/Tests/badge.svg)](https://github.com/Vention-Test-Portal/test-portal-integration-cli/actions)
 
 A powerful CLI tool and programmatic library for converting test reports from popular testing frameworks to unified format. Supports both local file output and remote webhook delivery with comprehensive retry logic and authentication.
 
@@ -20,17 +20,77 @@ A powerful CLI tool and programmatic library for converting test reports from po
 
 ### Global Installation (CLI)
 
-### Global CLI Installation
-
 ```bash
-npm install -g test-report-converter
+npm install -g @vention-test-portal/test-portal-integration-cli
 ```
 
 ### Local Installation (Library)
 
 ```bash
-npm install test-report-converter
+npm install @vention-test-portal/test-portal-integration-cli
 ```
+
+## 📦 GitHub Actions Usage
+
+To use this CLI in your GitHub Actions workflows to upload test reports:
+
+### 1. Configure Permissions and Secrets
+
+Ensure your workflow has permission to read packages and access the repository.
+
+### 2. Add Workflow Step
+
+Add the following step to your `.github/workflows/test.yml` (or equivalent):
+
+```yaml
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
+
+  - name: Set up Node
+    uses: actions/setup-node@v4
+    with:
+      node-version: '22'
+      registry-url: 'https://npm.pkg.github.com'
+
+  - name: Configure npm auth for GitHub Packages
+    run: |
+      echo "@vention-test-portal:registry=https://npm.pkg.github.com" >> .npmrc
+      echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
+  - name: Install test reporter CLI
+    run: |
+      npm install @vention-test-portal/test-portal-integration-cli
+
+  - name: Run tests
+    run: |
+      # Run your tests and generate a report (e.g., JUnit, JSON)
+      npm test -- --json --outputFile=report.json
+
+  - name: Send test report
+    env:
+      TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
+      TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
+    run: |
+      # Use npx to run the CLI
+      npx test-portal-cli report.json
+```
+
+### 3. Local Development
+
+To use the package locally:
+
+1. Create a Personal Access Token (PAT) with `read:packages` scope.
+2. Add the following to your `~/.npmrc`:
+   ```ini
+   @vention-test-portal:registry=https://npm.pkg.github.com
+   //npm.pkg.github.com/:_authToken=YOUR_PAT
+   ```
+3. Install and run:
+   ```bash
+   npm install @vention-test-portal/test-portal-integration-cli
+   npx test-portal-cli report.json
+   ```
 
 ## 📖 Usage
 
@@ -54,25 +114,25 @@ TEST_PORTAL_API_KEY=your-api-key-here
 
 ```bash
 # Convert Playwright results to unified format (file only)
-test-convert -i playwright-results.json -t playwright -o unified-report.json
+test-portal-cli -i playwright-results.json -t playwright -o unified-report.json
 
 # Send report to TEST_PORTAL_URL from .env (automatic)
-test-convert -i playwright-results.json -t playwright
+test-portal-cli -i playwright-results.json -t playwright
 
 # Override .env webhook URL
-test-convert -i playwright-results.json -t playwright --webhook https://api.example.com/reports
+test-portal-cli -i playwright-results.json -t playwright --webhook https://api.example.com/reports
 
 # Output to console only
-test-convert -i playwright-results.json -t playwright --stdout
+test-portal-cli -i playwright-results.json -t playwright --stdout
 
 # File output + webhook to .env URL
-test-convert -i playwright-results.json -t playwright -o unified-report.json
+test-portal-cli -i playwright-results.json -t playwright -o unified-report.json
 ```
 
 ### Programmatic Usage
 
 ```typescript
-import { convert } from 'test-report-converter';
+import { convert } from '@vention-test-portal/test-portal-integration-cli';
 
 const report = await convert({
   input: './playwright-results.json',
@@ -121,13 +181,13 @@ TEST_PORTAL_API_KEY=your-api-key-here
 
 ```bash
 # Reports are automatically sent to TEST_PORTAL_URL with API key authentication
-test-convert -i results.json -t playwright
+test-portal-cli -i results.json -t playwright
 ```
 
 ### With Custom Headers
 
 ```bash
-test-convert -i results.json -t playwright \
+test-portal-cli -i results.json -t playwright \
   --webhook https://api.example.com/reports \
   --headers '{"X-Team": "qa", "X-Environment": "production"}'
 ```
@@ -137,7 +197,7 @@ test-convert -i results.json -t playwright \
 ### With Retry Configuration
 
 ```bash
-test-convert -i results.json -t playwright \
+test-portal-cli -i results.json -t playwright \
   --webhook https://api.example.com/reports \
   --retries 5 \
   --retry-delay 2000 \
@@ -147,7 +207,7 @@ test-convert -i results.json -t playwright \
 ### Skip SSL Verification (Development Only)
 
 ```bash
-test-convert -i results.json -t playwright \
+test-portal-cli -i results.json -t playwright \
   --webhook https://internal-api.company.com/reports \
   --no-verify-ssl
 ```
@@ -157,7 +217,7 @@ test-convert -i results.json -t playwright \
 ### Basic Conversion
 
 ```typescript
-import { convert } from 'test-report-converter';
+import { convert } from '@vention-test-portal/test-portal-integration-cli';
 
 const report = await convert({
   input: './test-results.json',
@@ -169,7 +229,7 @@ const report = await convert({
 ### With Webhook
 
 ```typescript
-import { convert } from 'test-report-converter';
+import { convert } from '@vention-test-portal/test-portal-integration-cli';
 
 const report = await convert({
   input: './test-results.json',
@@ -185,7 +245,10 @@ const report = await convert({
 ### Advanced Usage
 
 ```typescript
-import { convert, Converter } from 'test-report-converter';
+import {
+  convert,
+  Converter,
+} from '@vention-test-portal/test-portal-integration-cli';
 
 const converter = new Converter();
 
@@ -297,6 +360,7 @@ The tool generates unified format reports with consistent structure:
 - Handles skipped tests correctly
 
 ### Pytest
+
 - Supports pytest-json-report plugin format
 - Maps xfailed (expected failures) to skipped status
 - Maps xpassed (unexpected passes) to passed status
@@ -324,7 +388,7 @@ Use repository secrets to configure the Test Portal URL and API key:
     TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
     TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
   run: |
-    npx test-report-converter -i test-results.json -t playwright
+    npx test-portal-cli -i test-results.json -t playwright
 ```
 
 ### With File Output
@@ -335,7 +399,7 @@ Use repository secrets to configure the Test Portal URL and API key:
     TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
     TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
   run: |
-    npx test-report-converter -i test-results.json -t playwright \
+    npx test-portal-cli -i test-results.json -t playwright \
       --output artifacts/unified-report.json
 
 - name: Upload Test Results
@@ -353,14 +417,14 @@ test_report_conversion:
     TEST_PORTAL_URL: $TEST_PORTAL_URL
     TEST_PORTAL_API_KEY: $TEST_PORTAL_API_KEY
   script:
-    - npx test-report-converter -i test-results.json -t playwright
+    - npx test-portal-cli -i test-results.json -t playwright
 ```
 
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/user/test-report-converter.git
-cd test-report-converter
+git clone https://github.com/Vention-Test-Portal/test-portal-integration-cli.git
+cd test-portal-integration-cli
 npm install
 
 # Copy .env.example to .env and configure
@@ -376,7 +440,7 @@ npm test
 npm run dev -- -i examples/vitest-report-with-env.json -t vitest -o output.json
 
 # Run CLI after building
-node dist/src/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
+node dist/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
 ```
 
 ## 📋 Requirements
@@ -403,9 +467,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🔗 Links
 
-- [Create an issue](https://github.com/user/test-report-converter/issues)
-- [View existing issues](https://github.com/user/test-report-converter/issues)
-- [Check documentation](https://github.com/user/test-report-converter/wiki)
+- [Create an issue](https://github.com/Vention-Test-Portal/test-portal-integration-cli/issues)
+- [View existing issues](https://github.com/Vention-Test-Portal/test-portal-integration-cli/issues)
+- [Check documentation](https://github.com/Vention-Test-Portal/test-portal-integration-cli/wiki)
 
 ## 🙏 Acknowledgments
 
