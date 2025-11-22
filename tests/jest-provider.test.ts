@@ -29,7 +29,12 @@ describe('JestProvider', () => {
         numTotalTests: 1,
         numPassedTests: 1,
         numFailedTests: 0,
-        testResults: [],
+        testResults: [
+          {
+            testFilePath: 'some/path',
+            assertionResults: [],
+          },
+        ],
       };
 
       const testFile = join(testDataDir, 'valid-jest.json');

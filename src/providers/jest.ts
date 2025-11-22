@@ -18,7 +18,10 @@ export class JestProvider implements BaseProvider {
         Array.isArray(data.testResults) &&
         typeof data.numTotalTests === 'number' &&
         typeof data.numPassedTests === 'number' &&
-        typeof data.numFailedTests === 'number'
+        typeof data.numFailedTests === 'number' &&
+        // Distinguish from Vitest which uses 'name' instead of 'testFilePath'
+        data.testResults.length > 0 &&
+        'testFilePath' in data.testResults[0]
       );
     } catch {
       return false;

@@ -113,6 +113,9 @@ TEST_PORTAL_API_KEY=your-api-key-here
 ### CLI Examples
 
 ```bash
+# Auto-detect provider (no -t flag needed)
+test-portal-cli -i playwright-results.json -o unified-report.json
+
 # Convert Playwright results to unified format (file only)
 test-portal-cli -i playwright-results.json -t playwright -o unified-report.json
 
@@ -148,7 +151,10 @@ console.log('Conversion complete!', report);
 ### Required Options
 
 - `-i, --input <path>` - Path to source report file
-- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit, mocha, pytest
+
+### Optional Options
+
+- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit, mocha, pytest (Auto-detected if omitted)
 
 ### Output Options
 

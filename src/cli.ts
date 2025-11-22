@@ -22,7 +22,7 @@ async function main(): Promise<void> {
 
   program
     .requiredOption('-i, --input <path>', 'Path to the source report file')
-    .requiredOption(
+    .option(
       '-t, --type <provider>',
       `Provider name (${converter.getAvailableProviders().join(', ')})`
     )
@@ -75,10 +75,22 @@ async function main(): Promise<void> {
           }
         }
 
+        let provider = options.type;
+        if (!provider) {
+          console.log('🔍 Auto-detecting provider...');
+          provider = await converter.detectProvider(options.input);
+          if (!provider) {
+            throw new Error(
+              'Could not auto-detect provider. Please specify using -t, --type option.'
+            );
+          }
+          console.log(`✅ Detected provider: ${provider}`);
+        }
+
         const convertOptions: ConvertOptions = {
           input: options.input,
           output: options.output,
-          provider: options.type,
+          provider: provider,
           stdout: options.stdout,
           ...(webhookConfig && { webhook: webhookConfig }),
         };

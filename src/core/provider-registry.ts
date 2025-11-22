@@ -41,4 +41,13 @@ export class ProviderRegistry {
   hasProvider(name: string): boolean {
     return this.providers.has(name.toLowerCase());
   }
+
+  async detectProvider(inputPath: string): Promise<BaseProvider | undefined> {
+    for (const provider of this.providers.values()) {
+      if (await provider.validate(inputPath)) {
+        return provider;
+      }
+    }
+    return undefined;
+  }
 }

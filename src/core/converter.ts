@@ -14,6 +14,11 @@ export class Converter {
     this.httpClient = new HttpClient();
   }
 
+  async detectProvider(inputPath: string): Promise<string | undefined> {
+    const provider = await this.providers.detectProvider(inputPath);
+    return provider?.name;
+  }
+
   async convert(options: ConvertOptions): Promise<CTRFReport> {
     const { input, provider } = options;
 

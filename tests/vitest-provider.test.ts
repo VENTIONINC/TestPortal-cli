@@ -53,7 +53,16 @@ describe('VitestProvider', () => {
         },
         startTime: 1761646529949,
         success: false,
-        testResults: [],
+        testResults: [
+          {
+            name: 'some/path',
+            assertionResults: [],
+            startTime: 123,
+            endTime: 456,
+            status: 'passed',
+            message: '',
+          },
+        ],
       };
 
       const testFile = join(testDataDir, 'valid-vitest.json');
