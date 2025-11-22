@@ -51,6 +51,9 @@ Thumbs.db
 .env.test.local
 .env.production.local
 
+# Output directory
+output/
+
 # Test output
 test-results/
 junit.xml
