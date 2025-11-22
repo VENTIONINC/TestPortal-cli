@@ -30,67 +30,100 @@ npm install -g @vention-test-portal/test-portal-integration-cli
 npm install @vention-test-portal/test-portal-integration-cli
 ```
 
-## 📦 GitHub Actions Usage
+## 📦 CI/CD Installation & Usage
 
-To use this CLI in your GitHub Actions workflows to upload test reports:
+### Setup for Customer Projects (Vention Team Members)
 
-### 1. Configure Permissions and Secrets
+#### 1. Generate Personal Access Token
 
-Ensure your workflow has permission to read packages and access the repository.
+1. Go to [GitHub Settings → Tokens](https://github.com/settings/tokens)
+2. Click **"Generate new token (classic)"**
+3. Configure:
+   - **Note**: `Vention Test Portal CLI - [Customer Name]`
+   - **Expiration**: 90 days
+   - **Scopes**: `read:packages` only
+4. Copy token (`ghp_xxxxxxxxxxxxx`)
 
-### 2. Add Workflow Step
+#### 2. Add Secrets to Customer Repository
 
-Add the following step to your `.github/workflows/test.yml` (or equivalent):
+Customer repo → **Settings** → **Secrets and variables** → **Actions**, add:
 
-```yaml
-steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+| Secret Name | Value | Purpose |
+|-------------|-------|---------|
+| `VENTION_GITHUB_TOKEN` | Your personal token | Package installation auth |
+| `TEST_PORTAL_URL` | Portal webhook URL | Report upload endpoint |
+| `TEST_PORTAL_API_KEY` | Portal API key | Report upload auth |
 
-  - name: Set up Node
-    uses: actions/setup-node@v4
-    with:
-      node-version: '22'
-      registry-url: 'https://npm.pkg.github.com'
+#### 3. Configure Project
 
-  - name: Configure npm auth for GitHub Packages
-    run: |
-      echo "@vention-test-portal:registry=https://npm.pkg.github.com" >> .npmrc
-      echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
-
-  - name: Install test reporter CLI
-    run: |
-      npm install @vention-test-portal/test-portal-integration-cli
-
-  - name: Run tests
-    run: |
-      # Run your tests and generate a report (e.g., JUnit, JSON)
-      npm test -- --json --outputFile=report.json
-
-  - name: Send test report
-    env:
-      TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
-      TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
-    run: |
-      # Use npx to run the CLI
-      npx test-portal-cli report.json
+**Create `.npmrc` in project root:**
+```ini
+@vention-test-portal:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
-### 3. Local Development
+**Add to `package.json`:**
+```json
+{
+  "dependencies": {
+    "@vention-test-portal/test-portal-integration-cli": "^1.0.0-alpha.1"
+  }
+}
+```
 
-To use the package locally:
+**Commit `.npmrc`** (no secrets, safe to commit)
 
-1. Create a Personal Access Token (PAT) with `read:packages` scope.
-2. Add the following to your `~/.npmrc`:
-   ```ini
-   @vention-test-portal:registry=https://npm.pkg.github.com
-   //npm.pkg.github.com/:_authToken=YOUR_PAT
-   ```
-3. Install and run:
-   ```bash
-   npm install @vention-test-portal/test-portal-integration-cli
-   npx test-portal-cli report.json
-   ```
+#### 4. GitHub Actions Workflow
+
+```yaml
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.VENTION_GITHUB_TOKEN }}
+
+      - name: Run tests
+        run: npm test
+
+      - name: Upload test report
+        env:
+          TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
+          TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
+        run: npx test-portal-cli -i ${{ vars.TEST_REPORT_PATH || 'test-results.json' }} -t ${{ vars.TEST_FRAMEWORK || 'playwright' }}
+```
+
+**Optional Variables** (repo → Settings → Secrets and variables → Actions → Variables tab):
+
+| Variable Name | Default | Description |
+|--------------|---------|-------------|
+| `TEST_REPORT_PATH` | `test-results.json` | Path to test report file |
+| `TEST_FRAMEWORK` | `playwright` | Framework type (jest/playwright/cypress/etc) |
+
+#### Token Management
+
+**Renew before expiration:**
+1. Generate new token
+2. Update `VENTION_GITHUB_TOKEN` secret
+3. Revoke old token
+
+**Leaving project:**
+1. Notify team lead
+2. Replacement generates new token
+3. Revoke your token
 
 ## 📖 Usage
 
