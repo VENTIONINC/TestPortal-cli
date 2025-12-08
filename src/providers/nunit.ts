@@ -1,17 +1,8 @@
 import { promises as fs } from 'fs';
 import { XMLParser } from 'fast-xml-parser';
-import { randomUUID } from 'crypto';
-
 import { BaseProvider } from '@/types/providers';
-import {
-  UnifiedReport,
-  UnifiedTestSuite,
-  UnifiedTestResult,
-  UnifiedTestStatus,
-  UnifiedTestStats,
-  UnifiedTestAttempt,
-  UnifiedError,
-} from '@/types/unified-report';
+import { CTRFReport } from '@/types/ctrf';
+import { CTRFBuilder } from '@/core/ctrf-builder';
 import {
   NUnitReport,
   NUnitTestCase,
@@ -49,120 +40,113 @@ export class NUnitProvider implements BaseProvider {
     }
   }
 
-  async convert(inputPath: string): Promise<UnifiedReport> {
+  async convert(inputPath: string): Promise<CTRFReport> {
     const content = await fs.readFile(inputPath, 'utf8');
     const nunitReport: NUnitReport = this.parser.parse(content);
-
     const testRun = nunitReport['test-run'];
-    const suites = this.convertSuites(testRun['test-suite']);
-    const stats = this.calculateStats(suites, testRun);
 
-    return {
-      id: randomUUID(),
-      runId: testRun['@_id'],
-      framework: 'nunit',
-      frameworkVersion: testRun['@_engine-version'] || 'unknown',
-      toolVersion: testRun['@_engine-version'] || 'unknown',
-      stats,
-      suites,
-      createdAt: new Date().toISOString(),
-    };
+    const builder = new CTRFBuilder('nunit');
+
+    // Process suites recursively
+    this.processSuites(testRun['test-suite'], builder);
+
+    // Set summary
+    const total = parseInt(testRun['@_total'] || '0', 10);
+    const passed = parseInt(testRun['@_passed'] || '0', 10);
+    const failed = parseInt(testRun['@_failed'] || '0', 10);
+    const skipped = parseInt(testRun['@_skipped'] || '0', 10);
+    const inconclusive = parseInt(testRun['@_inconclusive'] || '0', 10);
+
+    // NUnit duration is in seconds
+    const durationSeconds = parseFloat(testRun['@_duration'] || '0');
+    const durationMs = Math.round(durationSeconds * 1000);
+
+    // Start time is usually YYYY-MM-DD HH:MM:SSZ
+    const startTime = testRun['@_start-time']
+      ? new Date(testRun['@_start-time']).getTime()
+      : Date.now();
+    const stopTime = testRun['@_end-time']
+      ? new Date(testRun['@_end-time']).getTime()
+      : startTime + durationMs;
+
+    builder.setSummary({
+      tests: total,
+      passed: passed,
+      failed: failed,
+      skipped: skipped,
+      pending: inconclusive,
+      other: 0,
+      start: startTime,
+      stop: stopTime,
+    });
+
+    return builder.build();
   }
 
-  private convertSuites(
-    suite: NUnitTestSuite | NUnitTestSuite[] | undefined
-  ): UnifiedTestSuite[] {
+  private processSuites(
+    suite: NUnitTestSuite | NUnitTestSuite[] | undefined,
+    builder: CTRFBuilder
+  ): void {
     if (!suite) {
-      return [];
+      return;
     }
 
-    const suites: UnifiedTestSuite[] = [];
     const suitesArray = Array.isArray(suite) ? suite : [suite];
 
     for (const s of suitesArray) {
       // Extract tests from current suite
-      const tests = this.extractTests(s);
-
-      // If this suite has tests, add it
-      if (tests.length > 0) {
-        const unifiedSuite: UnifiedTestSuite = {
-          id: s['@_id'] || randomUUID(),
-          name: s['@_name'] || 'Unnamed Suite',
-          file: s['@_fullname'],
-          path: s['@_fullname'],
-          tests,
-          duration: this.parseDuration(s['@_duration'] || s['@_time']),
-        };
-        suites.push(unifiedSuite);
-      }
+      this.extractTests(s, builder);
 
       // Recursively process child suites
       if (s['test-suite']) {
-        const childSuites = this.convertSuites(s['test-suite']);
-        suites.push(...childSuites);
+        this.processSuites(s['test-suite'], builder);
       }
     }
-
-    return suites;
   }
 
-  private extractTests(suite: NUnitTestSuite): UnifiedTestResult[] {
+  private extractTests(suite: NUnitTestSuite, builder: CTRFBuilder): void {
     if (!suite['test-case']) {
-      return [];
+      return;
     }
 
     const testCases = Array.isArray(suite['test-case'])
       ? suite['test-case']
       : [suite['test-case']];
 
-    return testCases.map(test => this.convertTest(test, suite));
+    for (const test of testCases) {
+      const status = this.mapStatus(test['@_result']);
+      const duration = this.parseDuration(test['@_duration'] || test['@_time']);
+      const error = this.extractError(test);
+
+      builder.addTest({
+        name: test['@_name'],
+        status: status,
+        duration: duration,
+        suite: suite['@_name'] || 'Unnamed Suite',
+        filePath: suite['@_fullname'] || '',
+        ...(error?.message ? { message: error.message } : {}),
+        ...(error?.stack ? { trace: error.stack } : {}),
+        rawStatus: test['@_result'],
+      });
+    }
   }
 
-  private convertTest(
-    test: NUnitTestCase,
-    suite: NUnitTestSuite
-  ): UnifiedTestResult {
-    const status = this.mapStatus(test['@_result']);
-    const duration = this.parseDuration(test['@_duration'] || test['@_time']);
-
-    const attempt: UnifiedTestAttempt = {
-      attemptNumber: 1,
-      status,
-      duration,
-      startTime: test['@_start-time'],
-      errors: this.extractErrors(test),
-    };
-
-    return {
-      id: test['@_id'] || randomUUID(),
-      name: test['@_name'],
-      fullName: test['@_fullname'] || test['@_name'],
-      status,
-      duration,
-      startTime: test['@_start-time'],
-      endTime: test['@_end-time'],
-      tags: [],
-      assertions: test['@_asserts']
-        ? parseInt(test['@_asserts'], 10)
-        : undefined,
-      results: [attempt],
-    };
-  }
-
-  private extractErrors(test: NUnitTestCase): UnifiedError[] | undefined {
+  private extractError(
+    test: NUnitTestCase
+  ): { message: string; stack?: string } | undefined {
     if (!test.failure) {
       return undefined;
     }
 
-    const error: UnifiedError = {
-      message: test.failure.message || '',
-      stack: test.failure['stack-trace'],
-    };
+    const stack = test.failure['stack-trace'];
 
-    return [error];
+    return {
+      message: test.failure.message || '',
+      ...(stack ? { stack } : {}),
+    };
   }
 
-  private mapStatus(nunitStatus: NUnitStatus): UnifiedTestStatus {
+  private mapStatus(nunitStatus: NUnitStatus): string {
     switch (nunitStatus) {
       case 'Passed':
         return 'passed';
@@ -188,35 +172,7 @@ export class NUnitProvider implements BaseProvider {
       return 0;
     }
 
-    // NUnit reports duration in seconds, UnifiedReport expects milliseconds
+    // NUnit reports duration in seconds, CTRF expects milliseconds
     return Math.round(duration * 1000);
-  }
-
-  private calculateStats(
-    suites: UnifiedTestSuite[],
-    testRun: any
-  ): UnifiedTestStats {
-    const allTests = suites.flatMap(s => s.tests);
-
-    const passed = allTests.filter(t => t.status === 'passed').length;
-    const failed = allTests.filter(t => t.status === 'failed').length;
-    const skipped = allTests.filter(t => t.status === 'skipped').length;
-    const pending = allTests.filter(t => t.status === 'pending').length;
-
-    const totalDuration = suites.reduce((sum, suite) => {
-      return sum + (suite.duration || 0);
-    }, 0);
-
-    return {
-      total: allTests.length,
-      passed,
-      failed,
-      skipped,
-      pending,
-      suites: suites.length,
-      duration: totalDuration,
-      startTime: testRun['@_start-time'] || new Date().toISOString(),
-      endTime: testRun['@_end-time'],
-    };
   }
 }

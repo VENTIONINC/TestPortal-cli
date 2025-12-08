@@ -201,28 +201,25 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.framework).toBe('cypress');
-      expect(unifiedReport.frameworkVersion).toBe('10.2.0');
-      expect(unifiedReport.toolVersion).toBe('7.1.3');
-      expect(unifiedReport.stats.total).toBe(2);
-      expect(unifiedReport.stats.passed).toBe(2);
-      expect(unifiedReport.stats.failed).toBe(0);
-      expect(unifiedReport.stats.duration).toBe(5000);
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.name).toBe('Login Tests');
-      expect(unifiedReport.suites[0]?.file).toBe(
+      expect(ctrfReport.results.tool.name).toBe('cypress');
+      expect(ctrfReport.results.summary.tests).toBe(2);
+      expect(ctrfReport.results.summary.passed).toBe(2);
+      expect(ctrfReport.results.summary.failed).toBe(0);
+      expect(
+        ctrfReport.results.summary.stop - ctrfReport.results.summary.start
+      ).toBe(5000);
+      expect(ctrfReport.results.tests).toHaveLength(2);
+      expect(ctrfReport.results.tests[0]?.suite).toBe('Login Tests');
+      expect(ctrfReport.results.tests[0]?.filePath).toBe(
         'cypress/e2e/auth/login.cy.js'
       );
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe(
+      expect(ctrfReport.results.tests[0]?.name).toBe(
         'should login with valid credentials'
       );
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(2500);
-      expect(unifiedReport.id).toBeDefined();
-      expect(unifiedReport.createdAt).toBeDefined();
+      expect(ctrfReport.results.tests[0]?.status).toBe('passed');
+      expect(ctrfReport.results.tests[0]?.duration).toBe(2500);
     });
 
     it('should convert cypress report with failed tests', async () => {
@@ -287,17 +284,16 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.total).toBe(1);
-      expect(unifiedReport.stats.passed).toBe(0);
-      expect(unifiedReport.stats.failed).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toBe(
+      expect(ctrfReport.results.summary.tests).toBe(1);
+      expect(ctrfReport.results.summary.passed).toBe(0);
+      expect(ctrfReport.results.summary.failed).toBe(1);
+      expect(ctrfReport.results.tests[0]?.status).toBe('failed');
+      expect(ctrfReport.results.tests[0]?.message).toBe(
         'AssertionError: expected true to be false'
       );
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.stack).toContain(
+      expect(ctrfReport.results.tests[0]?.trace).toContain(
         'failing.cy.js:5:25'
       );
     });
@@ -359,14 +355,143 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.total).toBe(1);
-      expect(unifiedReport.stats.pending).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('pending');
+      expect(ctrfReport.results.summary.tests).toBe(1);
+      expect(ctrfReport.results.summary.pending).toBe(1);
+      expect(ctrfReport.results.tests[0]?.status).toBe('pending');
     });
 
-    it('should handle multiple suites', async () => {
+    it('should handle skipped tests', async () => {
+      const cypressReport = {
+        stats: {
+          suites: 1,
+          tests: 1,
+          passes: 0,
+          pending: 0,
+          failures: 0,
+          skipped: 1,
+          start: '2024-01-01T00:00:00.000Z',
+          end: '2024-01-01T00:00:01.000Z',
+          duration: 1000,
+        },
+        results: [
+          {
+            uuid: 'suite-uuid-1',
+            title: 'Skipped Tests',
+            fullFile: 'cypress/e2e/skipped.cy.js',
+            file: 'cypress/e2e/skipped.cy.js',
+            beforeHooks: [],
+            afterHooks: [],
+            tests: [
+              {
+                title: ['Skipped Tests', 'should be skipped'],
+                fullTitle: 'Skipped Tests should be skipped',
+                timedOut: null,
+                duration: 0,
+                state: 'skipped',
+                speed: null,
+                pass: false,
+                fail: false,
+                pending: false,
+                context: null,
+                code: '',
+                err: {},
+                uuid: 'test-uuid-1',
+                parentUUID: 'suite-uuid-1',
+                isHook: false,
+                skipped: true,
+              },
+            ],
+            suites: [],
+            passes: [],
+            failures: [],
+            pending: [],
+            skipped: ['test-uuid-1'],
+            duration: 0,
+            root: false,
+            rootEmpty: false,
+            _timeout: 2000,
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'cypress-skipped.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
+
+      const ctrfReport = await provider.convert(testFile);
+
+      // Cypress reports skipped tests in stats but might not include them in tests array depending on configuration
+      // or they might be marked as pending.
+      // In our implementation, we map 'pending' to 'pending' status.
+      // If 'skipped' is present in stats, we check summary.
+      expect(ctrfReport.results.summary.skipped).toBe(1);
+    });
+
+    it('should extract suite name from file path if title is missing', async () => {
+      const cypressReport = {
+        stats: {
+          suites: 1,
+          tests: 1,
+          passes: 1,
+          pending: 0,
+          failures: 0,
+          start: '2024-01-01T00:00:00.000Z',
+          end: '2024-01-01T00:00:02.000Z',
+          duration: 2000,
+        },
+        results: [
+          {
+            uuid: 'suite-uuid-1',
+            title: '',
+            fullFile: 'cypress/e2e/auth/login.cy.js',
+            file: 'cypress/e2e/auth/login.cy.js',
+            beforeHooks: [],
+            afterHooks: [],
+            tests: [
+              {
+                title: ['test'],
+                fullTitle: 'test',
+                timedOut: null,
+                duration: 1000,
+                state: 'passed',
+                speed: 'fast',
+                pass: true,
+                fail: false,
+                pending: false,
+                context: null,
+                code: '',
+                err: {},
+                uuid: 'test-uuid-1',
+                parentUUID: 'suite-uuid-1',
+                isHook: false,
+                skipped: false,
+              },
+            ],
+            suites: [],
+            passes: ['test-uuid-1'],
+            failures: [],
+            pending: [],
+            skipped: [],
+            duration: 1000,
+            root: false,
+            rootEmpty: false,
+            _timeout: 2000,
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'cypress-no-title.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
+
+      const ctrfReport = await provider.convert(testFile);
+
+      expect(ctrfReport.results.tests[0]?.suite).toBe('login');
+    });
+
+    it('should handle nested suites', async () => {
       const cypressReport = {
         stats: {
           suites: 2,
@@ -478,81 +603,24 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.total).toBe(3);
-      expect(unifiedReport.stats.passed).toBe(3);
-      expect(unifiedReport.stats.suites).toBe(2);
-      expect(unifiedReport.suites).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.name).toBe('Suite 1');
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[1]?.name).toBe('Suite 2');
-      expect(unifiedReport.suites[1]?.tests).toHaveLength(1);
+      expect(ctrfReport.results.summary.tests).toBe(3);
+      expect(ctrfReport.results.summary.passed).toBe(3);
+      expect(ctrfReport.results.tests).toHaveLength(3);
+
+      const suite1Tests = ctrfReport.results.tests.filter(
+        t => t.suite === 'Suite 1'
+      );
+      const suite2Tests = ctrfReport.results.tests.filter(
+        t => t.suite === 'Suite 2'
+      );
+
+      expect(suite1Tests).toHaveLength(2);
+      expect(suite2Tests).toHaveLength(1);
     });
 
-    it('should extract suite name from file path when title is missing', async () => {
-      const cypressReport = {
-        stats: {
-          suites: 1,
-          tests: 1,
-          passes: 1,
-          pending: 0,
-          failures: 0,
-          start: '2024-01-01T00:00:00.000Z',
-          end: '2024-01-01T00:00:02.000Z',
-          duration: 2000,
-        },
-        results: [
-          {
-            uuid: 'suite-uuid-1',
-            title: '',
-            fullFile: 'cypress/e2e/auth/login.cy.js',
-            file: 'cypress/e2e/auth/login.cy.js',
-            beforeHooks: [],
-            afterHooks: [],
-            tests: [
-              {
-                title: ['test'],
-                fullTitle: 'test',
-                timedOut: null,
-                duration: 1000,
-                state: 'passed',
-                speed: 'fast',
-                pass: true,
-                fail: false,
-                pending: false,
-                context: null,
-                code: '',
-                err: {},
-                uuid: 'test-uuid-1',
-                parentUUID: 'suite-uuid-1',
-                isHook: false,
-                skipped: false,
-              },
-            ],
-            suites: [],
-            passes: ['test-uuid-1'],
-            failures: [],
-            pending: [],
-            skipped: [],
-            duration: 1000,
-            root: false,
-            rootEmpty: false,
-            _timeout: 2000,
-          },
-        ],
-      };
-
-      const testFile = join(testDataDir, 'cypress-no-title.json');
-      await fs.mkdir(testDataDir, { recursive: true });
-      await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
-
-      const unifiedReport = await provider.convert(testFile);
-
-      expect(unifiedReport.suites[0]?.name).toBe('login');
-    });
-
-    it('should skip empty suites without tests', async () => {
+    it('should handle empty suite', async () => {
       const cypressReport = {
         stats: {
           suites: 1,
@@ -627,10 +695,161 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.name).toBe('Suite with Tests');
+      expect(ctrfReport.results.tests).toHaveLength(1);
+      expect(ctrfReport.results.tests[0]?.suite).toBe('Suite with Tests');
+    });
+
+    it('should handle empty report', async () => {
+      const cypressReport = {
+        stats: {
+          suites: 0,
+          tests: 0,
+          passes: 0,
+          pending: 0,
+          failures: 0,
+          start: '2024-01-01T00:00:00.000Z',
+          end: '2024-01-01T00:00:00.000Z',
+          duration: 0,
+        },
+        results: [],
+      };
+
+      const testFile = join(testDataDir, 'cypress-empty-report.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
+
+      const ctrfReport = await provider.convert(testFile);
+
+      expect(ctrfReport.results.summary.tests).toBe(0);
+    });
+
+    it('should handle report with no tests', async () => {
+      const cypressReport = {
+        stats: {
+          suites: 1,
+          tests: 0,
+          passes: 0,
+          pending: 0,
+          failures: 0,
+          start: '2024-01-01T00:00:00.000Z',
+          end: '2024-01-01T00:00:01.000Z',
+          duration: 1000,
+        },
+        results: [
+          {
+            uuid: 'suite-uuid-1',
+            title: 'Empty Test Suite',
+            fullFile: 'cypress/e2e/empty.cy.js',
+            file: 'cypress/e2e/empty.cy.js',
+            beforeHooks: [],
+            afterHooks: [],
+            tests: [],
+            suites: [],
+            passes: [],
+            failures: [],
+            pending: [],
+            skipped: [],
+            duration: 0,
+            root: false,
+            rootEmpty: true,
+            _timeout: 2000,
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'cypress-no-tests.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
+
+      const ctrfReport = await provider.convert(testFile);
+
+      expect(ctrfReport.results.summary.tests).toBe(0);
+    });
+
+    it('should handle report with no stats', async () => {
+      const cypressReport = {
+        results: [
+          {
+            uuid: 'suite-uuid-1',
+            title: 'Login Tests',
+            fullFile: 'cypress/e2e/auth/login.cy.js',
+            file: 'cypress/e2e/auth/login.cy.js',
+            beforeHooks: [],
+            afterHooks: [],
+            tests: [
+              {
+                title: ['Login Tests', 'should login with valid credentials'],
+                fullTitle: 'Login Tests should login with valid credentials',
+                timedOut: null,
+                duration: 2500,
+                state: 'passed',
+                speed: 'fast',
+                pass: true,
+                fail: false,
+                pending: false,
+                context: null,
+                code: 'cy.login()',
+                err: {},
+                uuid: 'test-uuid-1',
+                parentUUID: 'suite-uuid-1',
+                isHook: false,
+                skipped: false,
+              },
+              {
+                title: ['Login Tests', 'should logout successfully'],
+                fullTitle: 'Login Tests should logout successfully',
+                timedOut: null,
+                duration: 1500,
+                state: 'passed',
+                speed: 'fast',
+                pass: true,
+                fail: false,
+                pending: false,
+                context: null,
+                code: 'cy.logout()',
+                err: {},
+                uuid: 'test-uuid-2',
+                parentUUID: 'suite-uuid-1',
+                isHook: false,
+                skipped: false,
+              },
+            ],
+            suites: [],
+            passes: ['test-uuid-1', 'test-uuid-2'],
+            failures: [],
+            pending: [],
+            skipped: [],
+            duration: 4000,
+            root: false,
+            rootEmpty: false,
+            _timeout: 2000,
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'cypress-no-stats.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
+
+      const ctrfReport = await provider.convert(testFile);
+
+      expect(ctrfReport.results.tool.name).toBe('cypress');
+      expect(ctrfReport.results.summary.tests).toBe(2);
+      expect(ctrfReport.results.summary.passed).toBe(2);
+      expect(ctrfReport.results.summary.failed).toBe(0);
+      expect(ctrfReport.results.summary.skipped).toBe(0);
+      expect(ctrfReport.results.tests).toHaveLength(2);
+      expect(ctrfReport.results.tests[0]?.suite).toBe('Login Tests');
+      expect(ctrfReport.results.tests[0]?.filePath).toBe(
+        'cypress/e2e/auth/login.cy.js'
+      );
+      expect(ctrfReport.results.tests[0]?.name).toBe(
+        'should login with valid credentials'
+      );
+      expect(ctrfReport.results.tests[0]?.status).toBe('passed');
+      expect(ctrfReport.results.tests[0]?.duration).toBe(2500);
     });
 
     it('should handle test with missing version metadata', async () => {
@@ -690,11 +909,10 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.framework).toBe('cypress');
-      expect(unifiedReport.frameworkVersion).toBeUndefined();
-      expect(unifiedReport.toolVersion).toBeUndefined();
+      expect(ctrfReport.results.tool.name).toBe('cypress');
+      expect(ctrfReport.results.tool.version).toBeUndefined();
     });
 
     it('should use generated UUID when suite uuid is missing', async () => {
@@ -752,15 +970,13 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.id).toBeDefined();
-      expect(unifiedReport.suites[0]?.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-      );
+      expect(ctrfReport.results.tests).toHaveLength(1);
+      expect(ctrfReport.results.tests[0]?.name).toBe('test');
     });
 
-    it('should handle error without diff field', async () => {
+    it('should handle test with error but no message', async () => {
       const cypressReport = {
         stats: {
           suites: 1,
@@ -820,9 +1036,11 @@ describe('CypressProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.diff).toBeUndefined();
+      expect(ctrfReport.results.tests[0]?.status).toBe('failed');
+      expect(ctrfReport.results.tests[0]?.message).toBe('Test failed');
+      expect(ctrfReport.results.tests[0]?.trace).toBe('Error stack trace');
     });
   });
 });

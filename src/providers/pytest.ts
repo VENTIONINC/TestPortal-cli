@@ -1,16 +1,8 @@
 import { promises as fs } from 'fs';
-import { randomUUID } from 'crypto';
 import { BaseProvider } from '@/types/providers';
+import { CTRFReport } from '@/types/ctrf';
+import { CTRFBuilder } from '@/core/ctrf-builder';
 import {
-  UnifiedReport,
-  UnifiedTestSuite,
-  UnifiedTestResult,
-  UnifiedTestStatus,
-  UnifiedTestStats,
-  UnifiedError,
-} from '@/types/unified-report';
-import {
-  PytestReport,
   PytestReportSchema,
   PytestTest,
   PytestOutcome,
@@ -33,27 +25,50 @@ export class PytestProvider implements BaseProvider {
     }
   }
 
-  async convert(inputPath: string): Promise<UnifiedReport> {
+  async convert(inputPath: string): Promise<CTRFReport> {
     const content = await fs.readFile(inputPath, 'utf8');
     const data = JSON.parse(content);
 
     // Parse and validate with Zod
     const pytestReport = PytestReportSchema.parse(data);
 
-    const testsByFile = this.convertTests(pytestReport.tests);
-    const unifiedSuites = this.createTestSuites(testsByFile);
-    const stats = this.calculateStats(unifiedSuites, pytestReport);
+    const builder = new CTRFBuilder('pytest');
 
-    return {
-      id: randomUUID(),
-      framework: 'pytest',
-      stats,
-      suites: unifiedSuites,
-      createdAt: new Date().toISOString(),
-    };
+    // Set summary stats
+    const startTime = pytestReport.created * 1000;
+    const durationMs = pytestReport.duration * 1000;
+    const endTime = startTime + durationMs;
+
+    builder.setSummary({
+      start: startTime,
+      stop: endTime,
+    });
+
+    for (const test of pytestReport.tests) {
+      const { filePath, suiteName, testName } = this.extractSuiteInfo(
+        test.nodeid
+      );
+      const status = this.mapStatus(test.outcome);
+      const duration = this.calculateTestDuration(test) || 0;
+      const error = this.extractError(test);
+
+      builder.addTest({
+        name: testName,
+        status: status,
+        duration: duration,
+        suite: suiteName,
+        filePath: filePath,
+        ...(test.keywords && { tags: test.keywords }),
+        ...(error?.message && { message: error.message }),
+        ...(error?.stack && { trace: error.stack }),
+        rawStatus: test.outcome,
+      });
+    }
+
+    return builder.build();
   }
 
-  private mapStatus(outcome: PytestOutcome): UnifiedTestStatus {
+  private mapStatus(outcome: PytestOutcome): string {
     switch (outcome) {
       case 'passed':
         return 'passed';
@@ -90,55 +105,9 @@ export class PytestProvider implements BaseProvider {
     return { filePath, suiteName, testName };
   }
 
-  private convertTests(tests: PytestTest[]): Map<string, UnifiedTestResult[]> {
-    const testsByFile = new Map<string, UnifiedTestResult[]>();
-
-    for (const test of tests) {
-      const { filePath, suiteName } = this.extractSuiteInfo(test.nodeid);
-      const convertedTest = this.convertTest(test);
-
-      if (!testsByFile.has(suiteName)) {
-        testsByFile.set(suiteName, []);
-      }
-      testsByFile.get(suiteName)!.push(convertedTest);
-    }
-
-    return testsByFile;
-  }
-
-  private convertTest(test: PytestTest): UnifiedTestResult {
-    const status = this.mapStatus(test.outcome);
-    const duration = this.calculateTestDuration(test);
-    const errors = this.extractErrors(test);
-    const { testName } = this.extractSuiteInfo(test.nodeid);
-
-    const results = [
-      {
-        attemptNumber: 1,
-        status: status,
-        duration: duration,
-        startTime: undefined,
-        errors: errors,
-      },
-    ];
-
-    return {
-      id: randomUUID(),
-      name: testName,
-      fullName: test.nodeid,
-      status: status,
-      duration: duration,
-      startTime: undefined,
-      endTime: undefined,
-      tags: test.keywords,
-      assertions: undefined,
-      results: results,
-    };
-  }
-
-  private extractErrors(test: PytestTest): UnifiedError[] | undefined {
-    const errors: UnifiedError[] = [];
-
+  private extractError(
+    test: PytestTest
+  ): { message: string; stack?: string } | undefined {
     // Check stages in priority order: call > setup > teardown
     const stagesToCheck: Array<{
       stage: PytestStage | undefined;
@@ -149,34 +118,30 @@ export class PytestProvider implements BaseProvider {
       { stage: test.teardown, name: 'teardown' },
     ];
 
-    for (const { stage, name } of stagesToCheck) {
+    for (const { stage } of stagesToCheck) {
       if (!stage) continue;
 
       // Only extract errors from failed/error stages
       if (stage.outcome === 'failed' || stage.outcome === 'error') {
         // Use longrepr for main error message
         if (stage.longrepr) {
-          errors.push({
+          const stack = this.formatTraceback(stage);
+          return {
             message: stage.longrepr,
-            stack: this.formatTraceback(stage),
-          });
+            ...(stack && { stack }),
+          };
         }
 
         // Add crash info if present
         if (stage.crash) {
-          errors.push({
+          return {
             message: `Crash at ${stage.crash.path}:${stage.crash.lineno}: ${stage.crash.message}`,
-            stack: undefined,
-          });
+          };
         }
-
-        // If we found errors in this stage, we can break
-        // (call stage takes priority)
-        if (errors.length > 0) break;
       }
     }
 
-    return errors.length > 0 ? errors : undefined;
+    return undefined;
   }
 
   private formatTraceback(stage: PytestStage): string | undefined {
@@ -207,73 +172,5 @@ export class PytestProvider implements BaseProvider {
 
     // Convert seconds to milliseconds
     return hasDuration ? totalDuration * 1000 : undefined;
-  }
-
-  private createTestSuites(
-    testsByFile: Map<string, UnifiedTestResult[]>
-  ): UnifiedTestSuite[] {
-    const suites: UnifiedTestSuite[] = [];
-
-    for (const [suiteName, tests] of testsByFile.entries()) {
-      // Calculate suite duration as sum of test durations
-      const suiteDuration = tests.reduce((sum, test) => {
-        return sum + (test.duration || 0);
-      }, 0);
-
-      const suite: UnifiedTestSuite = {
-        id: randomUUID(),
-        name: suiteName,
-        tests: tests,
-        duration: suiteDuration > 0 ? suiteDuration : undefined,
-      };
-
-      suites.push(suite);
-    }
-
-    return suites;
-  }
-
-  private calculateStats(
-    suites: UnifiedTestSuite[],
-    report: PytestReport
-  ): UnifiedTestStats {
-    let total = 0;
-    let passed = 0;
-    let failed = 0;
-    let skipped = 0;
-
-    // Count from converted tests
-    for (const suite of suites) {
-      for (const test of suite.tests) {
-        total++;
-        switch (test.status) {
-          case 'passed':
-            passed++;
-            break;
-          case 'failed':
-            failed++;
-            break;
-          case 'skipped':
-            skipped++;
-            break;
-        }
-      }
-    }
-
-    // Use report timestamps
-    const startTime = new Date(report.created * 1000).toISOString();
-    const durationMs = report.duration * 1000;
-    const endTime = new Date(report.created * 1000 + durationMs).toISOString();
-
-    return {
-      total,
-      passed,
-      failed,
-      skipped,
-      suites: suites.length,
-      duration: durationMs,
-      startTime,
-      endTime,
-    };
   }
 }
