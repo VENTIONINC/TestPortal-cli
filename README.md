@@ -443,6 +443,30 @@ npm run dev -- -i examples/vitest-report-with-env.json -t vitest -o output.json
 node dist/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
 ```
 
+## 🚀 Deployment
+
+This package is automatically published to the GitHub Package Registry when a new version tag is pushed.
+
+### Release Process
+
+1. Update the version in `package.json` according to [SemVer](https://semver.org/):
+
+   ```bash
+   npm version patch # or minor, or major
+   ```
+
+   This command will update `package.json` and create a git tag (e.g., `v1.1.1`).
+
+2. Push the changes and the tag:
+
+   ```bash
+   git push && git push --tags
+   ```
+
+3. The GitHub Action defined in `.github/workflows/publish.yml` will trigger:
+   - Build the project
+   - Publish the package to `https://npm.pkg.github.com`
+
 ## 📋 Requirements
 
 - Node.js >= 18.0.0
