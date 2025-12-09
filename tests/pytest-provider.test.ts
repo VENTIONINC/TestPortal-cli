@@ -8,7 +8,11 @@ describe('PytestProvider', () => {
 
   beforeEach(() => {
     provider = new PytestProvider();
-    testDataDir = join(__dirname, 'test-data', `pytest-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `pytest-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {
@@ -168,18 +172,16 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.framework).toBe('pytest');
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.name).toBe('test_auth');
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(3);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('test_login');
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.stats.total).toBe(3);
-      expect(unifiedReport.stats.passed).toBe(3);
-      expect(unifiedReport.stats.failed).toBe(0);
-      expect(unifiedReport.stats.skipped).toBe(0);
+      expect(ctrfReport.results.tool.name).toBe('pytest');
+      expect(ctrfReport.results.summary.tests).toBe(3);
+      expect(ctrfReport.results.summary.passed).toBe(3);
+      expect(ctrfReport.results.summary.failed).toBe(0);
+      expect(ctrfReport.results.summary.skipped).toBe(0);
+      expect(ctrfReport.results.tests).toHaveLength(3);
+      expect(ctrfReport.results.tests[0]?.name).toBe('test_login');
+      expect(ctrfReport.results.tests[0]?.status).toBe('passed');
     });
 
     it('should handle failed tests with error extraction', async () => {
@@ -228,18 +230,15 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.passed).toBe(1);
-      expect(unifiedReport.stats.failed).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.message).toBe(
+      expect(ctrfReport.results.summary.passed).toBe(1);
+      expect(ctrfReport.results.summary.failed).toBe(1);
+      expect(ctrfReport.results.tests[1]?.status).toBe('failed');
+      expect(ctrfReport.results.tests[1]?.message).toBe(
         'AssertionError: Expected 200, got 404'
       );
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.stack).toContain(
-        'test_api.py'
-      );
+      expect(ctrfReport.results.tests[1]?.trace).toContain('test_api.py');
     });
 
     it('should map error outcome to failed status', async () => {
@@ -271,11 +270,11 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(unifiedReport.stats.failed).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
+      expect(ctrfReport.results.tests[0]?.status).toBe('failed');
+      expect(ctrfReport.results.summary.failed).toBe(1);
+      expect(ctrfReport.results.tests[0]?.message).toBeDefined();
     });
 
     it('should handle skipped tests', async () => {
@@ -316,11 +315,11 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.passed).toBe(1);
-      expect(unifiedReport.stats.skipped).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('skipped');
+      expect(ctrfReport.results.summary.passed).toBe(1);
+      expect(ctrfReport.results.summary.skipped).toBe(1);
+      expect(ctrfReport.results.tests[1]?.status).toBe('skipped');
     });
 
     it('should map xfailed tests to skipped status', async () => {
@@ -352,10 +351,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
-      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(ctrfReport.results.tests[0]?.status).toBe('skipped');
+      expect(ctrfReport.results.summary.skipped).toBe(1);
     });
 
     it('should map xpassed tests to passed status', async () => {
@@ -386,10 +385,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.stats.passed).toBe(1);
+      expect(ctrfReport.results.tests[0]?.status).toBe('passed');
+      expect(ctrfReport.results.summary.passed).toBe(1);
     });
 
     it('should handle setup failures', async () => {
@@ -428,13 +427,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toContain(
-        'Setup failed'
-      );
+      expect(ctrfReport.results.tests[0]?.status).toBe('failed');
+      expect(ctrfReport.results.tests[0]?.message).toContain('Setup failed');
     });
 
     it('should handle teardown failures', async () => {
@@ -482,13 +478,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toContain(
-        'Teardown failed'
-      );
+      expect(ctrfReport.results.tests[0]?.status).toBe('failed');
+      expect(ctrfReport.results.tests[0]?.message).toContain('Teardown failed');
     });
 
     it('should handle multiple test files with proper suite grouping', async () => {
@@ -534,18 +527,16 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites).toHaveLength(2);
-      expect(unifiedReport.stats.suites).toBe(2);
+      expect(ctrfReport.results.summary.tests).toBe(4);
+      expect(ctrfReport.results.tests).toHaveLength(4);
 
-      const authSuite = unifiedReport.suites.find(s => s.name === 'test_auth');
-      const apiSuite = unifiedReport.suites.find(s => s.name === 'test_api');
-
-      expect(authSuite).toBeDefined();
-      expect(apiSuite).toBeDefined();
-      expect(authSuite?.tests).toHaveLength(2);
-      expect(apiSuite?.tests).toHaveLength(2);
+      const testNames = ctrfReport.results.tests.map(t => t.name);
+      expect(testNames).toContain('test_login');
+      expect(testNames).toContain('test_logout');
+      expect(testNames).toContain('test_get');
+      expect(testNames).toContain('test_post');
     });
 
     it('should handle parameterized tests', async () => {
@@ -588,12 +579,12 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(3);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('test_format[param1]');
-      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe('test_format[param2]');
-      expect(unifiedReport.suites[0]?.tests[2]?.name).toBe('test_format[param3]');
+      expect(ctrfReport.results.tests).toHaveLength(3);
+      expect(ctrfReport.results.tests[0]?.name).toBe('test_format[param1]');
+      expect(ctrfReport.results.tests[1]?.name).toBe('test_format[param2]');
+      expect(ctrfReport.results.tests[2]?.name).toBe('test_format[param3]');
     });
 
     it('should calculate test duration from all stages', async () => {
@@ -632,10 +623,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
       // 0.1 + 0.5 + 0.15 = 0.75 seconds = 750 milliseconds
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(750);
+      expect(ctrfReport.results.tests[0]?.duration).toBe(750);
     });
 
     it('should convert timestamps correctly', async () => {
@@ -663,11 +654,13 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.startTime).toBeDefined();
-      expect(unifiedReport.stats.endTime).toBeDefined();
-      expect(unifiedReport.stats.duration).toBe(2500); // 2.5 seconds in milliseconds
+      expect(ctrfReport.results.summary.start).toBeDefined();
+      expect(ctrfReport.results.summary.stop).toBeDefined();
+      expect(
+        ctrfReport.results.summary.stop - ctrfReport.results.summary.start
+      ).toBe(2500); // 2.5 seconds in milliseconds
     });
 
     it('should handle empty test report', async () => {
@@ -687,10 +680,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites).toHaveLength(0);
-      expect(unifiedReport.stats.total).toBe(0);
+      expect(ctrfReport.results.tests).toHaveLength(0);
+      expect(ctrfReport.results.summary.tests).toBe(0);
     });
 
     it('should handle tests without stages', async () => {
@@ -717,10 +710,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBeUndefined();
+      expect(ctrfReport.results.tests[0]?.status).toBe('passed');
+      expect(ctrfReport.results.tests[0]?.duration).toBe(0);
     });
 
     it('should handle crash information in errors', async () => {
@@ -756,10 +749,10 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toContain(
+      expect(ctrfReport.results.tests[0]?.message).toBeDefined();
+      expect(ctrfReport.results.tests[0]?.message).toContain(
         'Segmentation fault'
       );
     });
@@ -790,9 +783,9 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.tags).toEqual([
+      expect(ctrfReport.results.tests[0]?.tags).toEqual([
         'test_with_markers',
         'slow',
         'integration',
@@ -831,16 +824,16 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
       // Should group by file, not by TestClass
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.name).toBe('test_classes');
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('test_login');
-      expect(unifiedReport.suites[0]?.tests[0]?.fullName).toBe(
-        'tests/test_classes.py::TestUserAuth::test_login'
-      );
+      expect(ctrfReport.results.tests).toHaveLength(2);
+      expect(ctrfReport.results.tests[0]?.name).toBe('test_login');
+      // CTRF doesn't have fullName, but we can check if suite is set correctly if we want,
+      // or just rely on name. The previous test checked fullName which was nodeid.
+      // Let's check if suite is set to the file name or similar.
+      // Actually, PytestProvider likely sets suite to the file name or module name.
+      expect(ctrfReport.results.tests[0]?.suite).toBe('test_classes');
     });
 
     it('should calculate suite duration as sum of test durations', async () => {
@@ -880,10 +873,12 @@ describe('PytestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const ctrfReport = await provider.convert(testFile);
 
       // 0.5 + 0.7 + 0.3 = 1.5 seconds = 1500 milliseconds
-      expect(unifiedReport.suites[0]?.duration).toBe(1500);
+      expect(ctrfReport.results.tests[0]?.duration).toBe(500);
+      expect(ctrfReport.results.tests[1]?.duration).toBe(700);
+      expect(ctrfReport.results.tests[2]?.duration).toBe(300);
     });
   });
 });

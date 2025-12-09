@@ -1,16 +1,9 @@
 import { promises as fs } from 'fs';
-import { randomUUID } from 'crypto';
 import { BaseProvider } from '@/types/providers';
-import {
-  UnifiedReport,
-  UnifiedTestSuite,
-  UnifiedTestResult,
-  UnifiedTestStatus,
-  UnifiedTestStats,
-} from '@/types/unified-report';
+import { CTRFReport } from '@/types/ctrf';
+import { CTRFBuilder } from '@/core/ctrf-builder';
 import {
   VitestReport,
-  VitestTestResult,
   VitestAssertionResult,
   VitestTestStatus,
 } from '@/types/vitest';
@@ -36,99 +29,101 @@ export class VitestProvider implements BaseProvider {
     }
   }
 
-  async convert(inputPath: string): Promise<UnifiedReport> {
+  async convert(inputPath: string): Promise<CTRFReport> {
     const content = await fs.readFile(inputPath, 'utf8');
     const vitestReport: VitestReport = JSON.parse(content);
 
-    const unifiedSuites = this.convertTestResults(vitestReport.testResults);
-    const stats = this.calculateStats(unifiedSuites, vitestReport);
+    const builder = new CTRFBuilder('vitest');
 
-    return {
-      id: randomUUID(),
-      framework: 'vitest',
-      stats,
-      suites: unifiedSuites,
-      createdAt: new Date().toISOString(),
-    };
-  }
+    // Calculate end time
+    const endTimes = vitestReport.testResults
+      .map(suite => suite.endTime - suite.startTime)
+      .filter(duration => duration > 0);
+    const maxEndTime = endTimes.length > 0 ? Math.max(...endTimes) : 0;
 
-  private convertTestResults(
-    testResults: VitestTestResult[]
-  ): UnifiedTestSuite[] {
-    const suites: UnifiedTestSuite[] = [];
+    let skipped = 0;
+    for (const suite of vitestReport.testResults) {
+      if (suite.assertionResults) {
+        for (const test of suite.assertionResults) {
+          if (test.status === 'skipped') {
+            skipped++;
+          }
+        }
+      }
+    }
 
-    for (const testResult of testResults) {
-      // Only include suites that have tests
+    builder.setSummary({
+      tests: vitestReport.numTotalTests,
+      passed: vitestReport.numPassedTests,
+      failed: vitestReport.numFailedTests,
+      pending: vitestReport.numPendingTests,
+      skipped: skipped,
+      other: vitestReport.numTodoTests || 0,
+      start: vitestReport.startTime,
+      stop: vitestReport.startTime + maxEndTime,
+    });
+
+    for (const testResult of vitestReport.testResults) {
+      const suiteName = this.extractSuiteName(testResult.name);
+
       if (
         testResult.assertionResults &&
         testResult.assertionResults.length > 0
       ) {
-        const suite: UnifiedTestSuite = {
-          id: randomUUID(),
-          name: this.extractSuiteName(testResult.name),
-          file: testResult.name,
-          tests: this.convertAssertionResults(testResult.assertionResults),
-          duration: testResult.endTime - testResult.startTime,
-        };
+        for (const assertion of testResult.assertionResults) {
+          const status = this.mapStatus(assertion.status);
+          const error = this.extractError(assertion);
 
-        suites.push(suite);
+          builder.addTest({
+            name: assertion.fullName || assertion.title,
+            status: status,
+            duration: assertion.duration || 0,
+            suite: suiteName,
+            filePath: testResult.name,
+            ...(error?.message ? { message: error.message } : {}),
+            ...(error?.stack ? { trace: error.stack } : {}),
+            rawStatus: assertion.status,
+          });
+        }
       }
     }
 
-    return suites;
+    return builder.build();
   }
 
-  private convertAssertionResults(
-    assertionResults: VitestAssertionResult[]
-  ): UnifiedTestResult[] {
-    return assertionResults.map(assertion =>
-      this.convertAssertionResult(assertion)
-    );
+  private mapStatus(vitestStatus: VitestTestStatus): string {
+    switch (vitestStatus) {
+      case 'passed':
+        return 'passed';
+      case 'failed':
+        return 'failed';
+      case 'skipped':
+        return 'skipped';
+      case 'pending':
+        return 'pending';
+      case 'todo':
+        return 'pending';
+      default:
+        return 'failed';
+    }
   }
 
-  private convertAssertionResult(
+  private extractError(
     assertion: VitestAssertionResult
-  ): UnifiedTestResult {
-    const status = this.mapStatus(assertion.status);
-
-    // Create a single result attempt (Vitest doesn't have retry mechanism by default)
-    const results = [
-      {
-        attemptNumber: 1,
-        status: status,
-        duration: assertion.duration,
-        startTime: undefined, // Not available in Vitest output
-        errors: this.extractErrors(assertion),
-      },
-    ];
-
-    return {
-      id: randomUUID(),
-      name: assertion.title,
-      fullName: assertion.fullName,
-      status: status,
-      duration: assertion.duration,
-      startTime: undefined, // Not available in Vitest output
-      endTime: undefined, // Not available in Vitest output
-      tags: undefined, // Vitest doesn't have built-in tagging
-      assertions: undefined,
-      results: results,
-    };
-  }
-
-  private extractErrors(assertion: VitestAssertionResult) {
+  ): { message: string; stack?: string } | undefined {
     if (!assertion.failureMessages || assertion.failureMessages.length === 0) {
       return undefined;
     }
 
-    return assertion.failureMessages.map(message => {
-      const location = this.extractLocationFromStack(message);
-      return {
-        message: this.extractErrorMessage(message),
-        stack: message,
-        ...(location && { location }),
-      };
-    });
+    const failureMessage = assertion.failureMessages[0];
+    if (!failureMessage) {
+      return undefined;
+    }
+
+    return {
+      message: this.extractErrorMessage(failureMessage),
+      stack: failureMessage,
+    };
   }
 
   private extractErrorMessage(failureMessage: string): string {
@@ -149,78 +144,10 @@ export class VitestProvider implements BaseProvider {
     return lines.find(line => line.trim().length > 0) || 'Test failed';
   }
 
-  private extractLocationFromStack(stack: string) {
-    // Extract file location from Vitest stack trace
-    const stackLines = stack.split('\n');
-
-    for (const line of stackLines) {
-      // Look for lines like "at /path/to/file.ts:14:29"
-      const match = line.match(/at (.+):(\d+):(\d+)/);
-      if (match && match[1] && match[2] && match[3]) {
-        return {
-          file: match[1],
-          line: parseInt(match[2], 10),
-          column: parseInt(match[3], 10),
-        };
-      }
-    }
-
-    return undefined;
-  }
-
-  private mapStatus(vitestStatus: VitestTestStatus): UnifiedTestStatus {
-    switch (vitestStatus) {
-      case 'passed':
-        return 'passed';
-      case 'failed':
-        return 'failed';
-      case 'skipped':
-        return 'skipped';
-      case 'pending':
-        return 'pending';
-      case 'todo':
-        return 'todo';
-      default:
-        return 'failed';
-    }
-  }
-
   private extractSuiteName(testFilePath: string): string {
     // Extract suite name from file path like "/project/src/subtraction.test.ts"
     const parts = testFilePath.split('/');
     const fileName = parts[parts.length - 1] || 'unknown';
     return fileName.replace(/\.(test|spec)\.(js|ts|jsx|tsx)$/, '');
-  }
-
-  private calculateStats(
-    suites: UnifiedTestSuite[],
-    vitestReport: VitestReport
-  ): UnifiedTestStats {
-    // Convert Vitest timestamp (epoch milliseconds) to ISO string
-    const startTime = new Date(vitestReport.startTime).toISOString();
-
-    // Calculate end time and duration from the test results
-    const endTimes = suites
-      .map(suite => suite.duration || 0)
-      .filter(duration => duration > 0);
-
-    const maxEndTime = endTimes.length > 0 ? Math.max(...endTimes) : 0;
-    const endTime = new Date(vitestReport.startTime + maxEndTime).toISOString();
-    const duration = maxEndTime;
-
-    return {
-      total: vitestReport.numTotalTests,
-      passed: vitestReport.numPassedTests,
-      failed: vitestReport.numFailedTests,
-      skipped: 0, // Vitest doesn't have a direct "skipped" concept in top-level stats
-      pending: vitestReport.numPendingTests,
-      todo: vitestReport.numTodoTests,
-      timeout: 0, // Vitest reports timeouts as failures
-      interrupted: 0,
-      suites: vitestReport.numTotalTestSuites,
-      duration,
-      startTime,
-      endTime,
-    };
   }
 }
