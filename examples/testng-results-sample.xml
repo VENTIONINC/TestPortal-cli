@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results ignored="0" total="3" passed="1" failed="1" skipped="1">
+  <reporter-output>
+    <line>
+      <![CDATA[Global setup completed]]>
+    </line>
+  </reporter-output>
+  <suite started-at="2023-10-27T10:00:00Z" name="Default Suite" finished-at="2023-10-27T10:00:05Z" duration-ms="5000">
+    <groups>
+      <group name="smoke">
+        <method signature="com.example.TestClass.testMethodPass()[pri:0, instance:com.example.TestClass@12345]" name="testMethodPass" class="com.example.TestClass"/>
+      </group>
+    </groups>
+    <test started-at="2023-10-27T10:00:00Z" name="Test" finished-at="2023-10-27T10:00:05Z" duration-ms="5000">
+      <class name="com.example.TestClass">
+        <test-method is-config="true" signature="setUp()[pri:0, instance:com.example.TestClass@12345]" started-at="2023-10-27T10:00:00Z" name="setUp" finished-at="2023-10-27T10:00:01Z" duration-ms="1000" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method>
+        <test-method signature="testMethodPass()[pri:0, instance:com.example.TestClass@12345]" started-at="2023-10-27T10:00:01Z" name="testMethodPass" finished-at="2023-10-27T10:00:02Z" duration-ms="1000" status="PASS">
+          <reporter-output>
+            <line>
+              <![CDATA[Test passed successfully]]>
+            </line>
+          </reporter-output>
+        </test-method>
+        <test-method signature="testMethodFail()[pri:0, instance:com.example.TestClass@12345]" started-at="2023-10-27T10:00:02Z" name="testMethodFail" finished-at="2023-10-27T10:00:03Z" duration-ms="1000" status="FAIL">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[expected [true] but found [false]]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: expected [true] but found [false]
+	at org.testng.Assert.fail(Assert.java:99)
+	at org.testng.Assert.failNotEquals(Assert.java:1037)
+	at org.testng.Assert.assertTrue(Assert.java:45)
+	at org.testng.Assert.assertTrue(Assert.java:55)
+	at com.example.TestClass.testMethodFail(TestClass.java:15)
+	...]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method signature="testMethodSkip()[pri:0, instance:com.example.TestClass@12345]" started-at="2023-10-27T10:00:03Z" name="testMethodSkip" finished-at="2023-10-27T10:00:03Z" duration-ms="0" status="SKIP">
+          <exception class="org.testng.SkipException">
+            <message>
+              <![CDATA[Skipping this test]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.testng.SkipException: Skipping this test
+	at com.example.TestClass.testMethodSkip(TestClass.java:20)
+	...]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method is-config="true" signature="tearDown()[pri:0, instance:com.example.TestClass@12345]" started-at="2023-10-27T10:00:04Z" name="tearDown" finished-at="2023-10-27T10:00:05Z" duration-ms="1000" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>

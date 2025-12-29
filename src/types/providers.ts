@@ -26,4 +26,5 @@ export type SupportedProvider =
   | 'mocha'
   | 'vitest'
   | 'nunit'
-  | 'pytest';
+  | 'pytest'
+  | 'testng';

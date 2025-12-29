@@ -8,7 +8,7 @@ A powerful CLI tool and programmatic library for converting test reports from po
 
 ## ✨ Features
 
-- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit, Mocha, Pytest
+- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit, Mocha, Pytest, TestNG
 - 📊 **CTRF format**: Common Test Report Format for consistent structure
 - 🚀 **CLI & Programmatic**: Use as command-line tool or Node.js library
 - 🌐 **Webhook delivery**: Send reports to remote endpoints with retry logic
@@ -368,6 +368,13 @@ The tool generates unified format reports with consistent structure:
 - Aggregates durations from setup/call/teardown stages
 - Extracts errors from stage failures with traceback
 - Groups tests by file into suites
+
+### TestNG
+
+- Supports standard TestNG XML output (`testng-results.xml`)
+- Maps suites and classes to unified suites
+- Filters out configuration methods (e.g., `@BeforeClass`)
+- Captures exception details and stack traces
 
 ## 📝 Example Output
 
