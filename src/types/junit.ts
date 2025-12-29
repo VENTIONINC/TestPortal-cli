@@ -23,6 +23,7 @@ export interface JunitTestCase {
   name: string;
   classname: string;
   time: number;
+  file?: string;
   failure?: JunitFailure;
   error?: JunitError;
   'system-out'?: string;

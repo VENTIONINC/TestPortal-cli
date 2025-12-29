@@ -1,5 +1,5 @@
 import { HttpClient } from '@/utils/http-client';
-import { UnifiedReport } from '@/types/unified-report';
+import { CTRFReport } from '@/types/ctrf';
 import { WebhookConfig } from '@/types/webhook';
 
 jest.mock('axios', () => ({
@@ -13,52 +13,34 @@ const mockedAxios = axios as jest.MockedFunction<typeof axios>;
 
 describe('HttpClient', () => {
   let httpClient: HttpClient;
-  let mockReport: UnifiedReport;
+  let mockReport: CTRFReport;
   const originalEnv = process.env;
 
   beforeEach(() => {
     httpClient = new HttpClient();
     mockReport = {
-      id: '1',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      framework: 'playwright',
-      frameworkVersion: '1.43.0',
-      toolVersion: '1.43.0',
-      suites: [
-        {
-          id: '1',
-          name: 'Test Suite',
-          tests: [
-            {
-              fullName: 'Test 1',
-              id: '1',
-              name: 'Test 1',
-              status: 'passed',
-              duration: 100,
-              results: [
-                {
-                  status: 'passed',
-                  attemptNumber: 1,
-                  duration: 100,
-                },
-              ],
-            },
-          ],
-          duration: 100,
+      results: {
+        tool: {
+          name: 'playwright',
+          version: '1.43.0',
         },
-      ],
-      stats: {
-        total: 1,
-        passed: 1,
-        failed: 0,
-        skipped: 0,
-        todo: 0,
-        timeout: 0,
-        interrupted: 0,
-        duration: 100,
-        startTime: new Date().toISOString(),
-        endTime: new Date().toISOString(),
+        summary: {
+          tests: 1,
+          passed: 1,
+          failed: 0,
+          skipped: 0,
+          pending: 0,
+          other: 0,
+          start: 1234567890,
+          stop: 1234567990,
+        },
+        tests: [
+          {
+            name: 'Test 1',
+            status: 'passed',
+            duration: 100,
+          },
+        ],
       },
     };
     jest.clearAllMocks();

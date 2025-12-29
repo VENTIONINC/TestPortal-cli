@@ -1,14 +1,8 @@
 import { promises as fs } from 'fs';
-import { randomUUID } from 'crypto';
 import { parseStringPromise } from 'xml2js';
 import { BaseProvider } from '@/types/providers';
-import {
-  UnifiedReport,
-  UnifiedTestSuite,
-  UnifiedTestResult,
-  UnifiedTestStatus,
-  UnifiedTestStats,
-} from '@/types/unified-report';
+import { CTRFReport, CTRFTest, TestStatus } from '@/types/ctrf';
+import { CTRFFactory } from '@/core/ctrf-factory';
 import { JunitTestSuite, JunitTestCase, JunitTestSuites } from '@/types/junit';
 
 export class JunitProvider implements BaseProvider {
@@ -32,7 +26,7 @@ export class JunitProvider implements BaseProvider {
     }
   }
 
-  async convert(inputPath: string): Promise<UnifiedReport> {
+  async convert(inputPath: string): Promise<CTRFReport> {
     const content = await fs.readFile(inputPath, 'utf8');
     const parsed = await parseStringPromise(content, {
       explicitArray: false,
@@ -41,17 +35,31 @@ export class JunitProvider implements BaseProvider {
 
     // Handle both single testsuite and testsuites formats
     const junitData = this.normalizeJunitData(parsed);
+    const tests = this.convertTestSuites(junitData);
 
-    const unifiedSuites = this.convertTestSuites(junitData);
-    const stats = this.calculateStats(unifiedSuites, junitData);
+    let startTime = Date.now();
+    let endTime = Date.now();
 
-    return {
-      id: randomUUID(),
-      framework: 'junit',
-      stats,
-      suites: unifiedSuites,
-      createdAt: new Date().toISOString(),
-    };
+    // Try to find timestamp in root
+    if (parsed.testsuites && parsed.testsuites.timestamp) {
+      startTime = new Date(parsed.testsuites.timestamp).getTime();
+    } else if (parsed.testsuite && parsed.testsuite.timestamp) {
+      startTime = new Date(parsed.testsuite.timestamp).getTime();
+    }
+
+    // Calculate duration
+    const totalTime = this.parseNumber(junitData.time) || 0;
+    if (totalTime > 0) {
+      endTime = startTime + totalTime * 1000; // JUnit time is usually seconds
+    }
+
+    return CTRFFactory.createReport(
+      tests,
+      'junit',
+      undefined,
+      startTime,
+      endTime
+    );
   }
 
   private normalizeJunitData(parsed: any): JunitTestSuites {
@@ -78,8 +86,8 @@ export class JunitProvider implements BaseProvider {
     throw new Error('Invalid JUnit XML format');
   }
 
-  private convertTestSuites(junitData: JunitTestSuites): UnifiedTestSuite[] {
-    const suites: UnifiedTestSuite[] = [];
+  private convertTestSuites(junitData: JunitTestSuites): CTRFTest[] {
+    const tests: CTRFTest[] = [];
 
     const testSuites = Array.isArray(junitData.testsuite)
       ? junitData.testsuite
@@ -87,141 +95,70 @@ export class JunitProvider implements BaseProvider {
 
     for (const suite of testSuites) {
       if (!suite) continue;
-
-      const unifiedSuite: UnifiedTestSuite = {
-        id: randomUUID(),
-        name: suite.name || 'Unknown Suite',
-        tests: this.convertTestCases(suite),
-        duration: this.parseNumber(suite.time),
-      };
-
-      suites.push(unifiedSuite);
+      tests.push(...this.convertTestCases(suite));
     }
 
-    return suites;
+    return tests;
   }
 
-  private convertTestCases(suite: JunitTestSuite): UnifiedTestResult[] {
-    const testCases = Array.isArray(suite.testcase)
-      ? suite.testcase
-      : suite.testcase
-        ? [suite.testcase]
-        : [];
+  private convertTestCases(suite: JunitTestSuite): CTRFTest[] {
+    const tests: CTRFTest[] = [];
+    const cases = suite.testcase
+      ? Array.isArray(suite.testcase)
+        ? suite.testcase
+        : [suite.testcase]
+      : [];
 
-    return testCases.map(testCase => this.convertTestCase(testCase));
+    for (const testCase of cases) {
+      tests.push(this.convertTestCase(testCase, suite.name));
+    }
+    return tests;
   }
 
-  private convertTestCase(testCase: JunitTestCase): UnifiedTestResult {
-    const status = this.determineTestStatus(testCase);
-    const duration = this.parseNumber(testCase.time);
+  private convertTestCase(
+    testCase: JunitTestCase,
+    suiteName: string
+  ): CTRFTest {
+    const status = this.determineStatus(testCase);
+    const duration = (this.parseNumber(testCase.time) || 0) * 1000; // seconds to ms
 
-    // Create a single result attempt
-    const results = [
-      {
-        attemptNumber: 1,
-        status: status,
-        duration: duration,
-        startTime: undefined,
-        errors: this.extractErrors(testCase),
-      },
-    ];
-
-    return {
-      id: randomUUID(),
+    const ctrfTest: CTRFTest = {
       name: testCase.name,
-      fullName: `${testCase.classname}.${testCase.name}`,
-      status: status,
-      duration: duration,
-      startTime: undefined,
-      endTime: undefined,
-      tags: undefined,
-      assertions: undefined,
-      results: results,
+      status,
+      duration,
+      suite: suiteName,
+      filePath: testCase.file, // Some JUnit reports have file attribute
     };
-  }
 
-  private determineTestStatus(testCase: JunitTestCase): UnifiedTestStatus {
-    if (testCase.skipped !== undefined) {
-      return 'skipped';
-    }
-    if (testCase.error) {
-      return 'failed'; // Map JUnit errors to failed
-    }
-    if (testCase.failure) {
-      return 'failed';
-    }
-    return 'passed';
-  }
-
-  private extractErrors(testCase: JunitTestCase) {
-    const errors = [];
-
-    if (testCase.failure) {
-      errors.push({
-        message: testCase.failure.message || 'Test failure',
-        stack: testCase.failure._ || '',
-      });
-    }
-
-    if (testCase.error) {
-      errors.push({
-        message: testCase.error.message || 'Test error',
-        stack: testCase.error._ || '',
-      });
-    }
-
-    return errors.length > 0 ? errors : undefined;
-  }
-
-  private calculateStats(
-    suites: UnifiedTestSuite[],
-    junitData: JunitTestSuites
-  ): UnifiedTestStats {
-    let total = 0;
-    let passed = 0;
-    let failed = 0;
-    let skipped = 0;
-
-    for (const suite of suites) {
-      for (const test of suite.tests) {
-        total++;
-        switch (test.status) {
-          case 'passed':
-            passed++;
-            break;
-          case 'failed':
-            failed++;
-            break;
-          case 'skipped':
-            skipped++;
-            break;
-        }
+    if (status === 'failed' || status === 'other') {
+      if (testCase.failure) {
+        const failure = Array.isArray(testCase.failure)
+          ? testCase.failure[0]
+          : testCase.failure;
+        ctrfTest.message = failure.message || failure._;
+        ctrfTest.trace = failure._; // Content often contains stack
+      } else if (testCase.error) {
+        const error = Array.isArray(testCase.error)
+          ? testCase.error[0]
+          : testCase.error;
+        ctrfTest.message = error.message || error._;
+        ctrfTest.trace = error._;
       }
     }
 
-    const startTime = junitData.timestamp || new Date().toISOString();
-    const duration = this.parseNumber(junitData.time) || 0;
-
-    return {
-      total,
-      passed,
-      failed,
-      skipped,
-      suites: suites.length,
-      duration: duration * 1000, // Convert to milliseconds
-      startTime,
-      endTime: new Date(
-        new Date(startTime).getTime() + duration * 1000
-      ).toISOString(),
-    };
+    return ctrfTest;
   }
 
-  private parseNumber(value: any): number | undefined {
+  private determineStatus(testCase: JunitTestCase): TestStatus {
+    if (testCase.failure) return 'failed';
+    if (testCase.error) return 'failed';
+    if (testCase.skipped !== undefined) return 'skipped';
+    return 'passed';
+  }
+
+  private parseNumber(value: any): number {
     if (typeof value === 'number') return value;
-    if (typeof value === 'string') {
-      const parsed = parseFloat(value);
-      return isNaN(parsed) ? undefined : parsed;
-    }
-    return undefined;
+    if (typeof value === 'string') return parseFloat(value);
+    return 0;
   }
 }

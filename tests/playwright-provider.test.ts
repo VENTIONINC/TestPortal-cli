@@ -106,15 +106,14 @@ describe('PlaywrightProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(playwrightReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.framework).toBe('playwright');
-      expect(unifiedReport.frameworkVersion).toBe('1.43.0');
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('should pass');
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(1000);
+      expect(report.results.tool.name).toBe('playwright');
+      expect(report.results.tool.version).toBe('1.43.0');
+      expect(report.results.tests).toHaveLength(1);
+      expect(report.results.tests[0]?.name).toBe('should pass');
+      expect(report.results.tests[0]?.status).toBe('passed');
+      expect(report.results.tests[0]?.duration).toBe(1000);
     });
   });
 });

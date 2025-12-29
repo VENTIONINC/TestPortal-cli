@@ -8,7 +8,11 @@ describe('JestProvider', () => {
 
   beforeEach(() => {
     provider = new JestProvider();
-    testDataDir = join(__dirname, 'test-data', `jest-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `jest-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {
@@ -130,19 +134,18 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.framework).toBe('jest');
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('should pass test 1');
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(450);
-      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe('should pass test 2');
-      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('passed');
-      expect(unifiedReport.stats.total).toBe(2);
-      expect(unifiedReport.stats.passed).toBe(2);
-      expect(unifiedReport.stats.failed).toBe(0);
+      expect(report.results.tool.name).toBe('jest');
+      expect(report.results.tests).toHaveLength(2);
+      expect(report.results.tests[0]?.name).toBe('should pass test 1');
+      expect(report.results.tests[0]?.status).toBe('passed');
+      expect(report.results.tests[0]?.duration).toBe(450);
+      expect(report.results.tests[1]?.name).toBe('should pass test 2');
+      expect(report.results.tests[1]?.status).toBe('passed');
+      expect(report.results.summary.tests).toBe(2);
+      expect(report.results.summary.passed).toBe(2);
+      expect(report.results.summary.failed).toBe(0);
     });
 
     it('should convert jest report with failed tests and error messages', async () => {
@@ -193,21 +196,22 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
+      expect(report.results.tests).toHaveLength(2);
 
-      const failedTest = unifiedReport.suites[0]?.tests[1];
+      const failedTest = report.results.tests[1];
       expect(failedTest?.status).toBe('failed');
-      expect(failedTest?.results[0]?.errors?.[0]?.message).toBe('expect(received).toBe(expected)');
-      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain('Expected: 200');
-      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain('Received: 500');
-      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain('/project/tests/example.test.js:25:29');
+      expect(failedTest?.message).toBe('expect(received).toBe(expected)');
+      expect(failedTest?.trace).toContain('Expected: 200');
+      expect(failedTest?.trace).toContain('Received: 500');
+      expect(failedTest?.trace).toContain(
+        '/project/tests/example.test.js:25:29'
+      );
 
-      expect(unifiedReport.stats.total).toBe(2);
-      expect(unifiedReport.stats.passed).toBe(1);
-      expect(unifiedReport.stats.failed).toBe(1);
+      expect(report.results.summary.tests).toBe(2);
+      expect(report.results.summary.passed).toBe(1);
+      expect(report.results.summary.failed).toBe(1);
     });
 
     it('should convert jest report with pending tests', async () => {
@@ -256,12 +260,12 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('pending');
-      expect(unifiedReport.stats.pending).toBe(1);
-      expect(unifiedReport.stats.passed).toBe(1);
+      expect(report.results.tests).toHaveLength(2);
+      expect(report.results.tests[1]?.status).toBe('pending');
+      expect(report.results.summary.pending).toBe(1);
+      expect(report.results.summary.passed).toBe(1);
     });
 
     it('should convert jest report with todo tests', async () => {
@@ -310,11 +314,11 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('todo');
-      expect(unifiedReport.stats.todo).toBe(1);
+      expect(report.results.tests).toHaveLength(2);
+      expect(report.results.tests[1]?.status).toBe('pending');
+      expect(report.results.summary.pending).toBe(1);
     });
 
     it('should handle multiple test suites', async () => {
@@ -393,13 +397,13 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.suites).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[1]?.tests).toHaveLength(2);
-      expect(unifiedReport.stats.total).toBe(4);
-      expect(unifiedReport.stats.passed).toBe(4);
+      expect(report.results.tests).toHaveLength(4);
+      expect(report.results.tests[0]?.suite).toBe('Suite 1');
+      expect(report.results.tests[2]?.suite).toBe('Suite 2');
+      expect(report.results.summary.tests).toBe(4);
+      expect(report.results.summary.passed).toBe(4);
     });
 
     it('should extract suite names from file paths', async () => {
@@ -440,9 +444,9 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.name).toBe('auth');
+      expect(report.results.tests[0]?.suite).toBe('Auth');
     });
 
     it('should handle skipped test files', async () => {
@@ -475,10 +479,10 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.suites).toHaveLength(0);
-      expect(unifiedReport.stats.total).toBe(0);
+      expect(report.results.tests).toHaveLength(0);
+      expect(report.results.summary.tests).toBe(0);
     });
 
     it('should calculate stats correctly', async () => {
@@ -503,11 +507,46 @@ describe('JestProvider', () => {
               runtime: 3000,
             },
             assertionResults: [
-              { ancestorTitles: [], title: 't1', fullName: 't1', status: 'passed', duration: 100, failureMessages: [] },
-              { ancestorTitles: [], title: 't2', fullName: 't2', status: 'passed', duration: 200, failureMessages: [] },
-              { ancestorTitles: [], title: 't3', fullName: 't3', status: 'failed', duration: 150, failureMessages: ['error'] },
-              { ancestorTitles: [], title: 't4', fullName: 't4', status: 'failed', duration: 250, failureMessages: ['error'] },
-              { ancestorTitles: [], title: 't5', fullName: 't5', status: 'pending', duration: 0, failureMessages: [] },
+              {
+                ancestorTitles: [],
+                title: 't1',
+                fullName: 't1',
+                status: 'passed',
+                duration: 100,
+                failureMessages: [],
+              },
+              {
+                ancestorTitles: [],
+                title: 't2',
+                fullName: 't2',
+                status: 'passed',
+                duration: 200,
+                failureMessages: [],
+              },
+              {
+                ancestorTitles: [],
+                title: 't3',
+                fullName: 't3',
+                status: 'failed',
+                duration: 150,
+                failureMessages: ['error'],
+              },
+              {
+                ancestorTitles: [],
+                title: 't4',
+                fullName: 't4',
+                status: 'failed',
+                duration: 250,
+                failureMessages: ['error'],
+              },
+              {
+                ancestorTitles: [],
+                title: 't5',
+                fullName: 't5',
+                status: 'pending',
+                duration: 0,
+                failureMessages: [],
+              },
             ],
           },
         ],
@@ -517,12 +556,12 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.total).toBe(5);
-      expect(unifiedReport.stats.passed).toBe(2);
-      expect(unifiedReport.stats.failed).toBe(2);
-      expect(unifiedReport.stats.pending).toBe(1);
+      expect(report.results.summary.tests).toBe(5);
+      expect(report.results.summary.passed).toBe(2);
+      expect(report.results.summary.failed).toBe(2);
+      expect(report.results.summary.pending).toBe(1);
     });
 
     it('should handle tests without duration', async () => {
@@ -562,9 +601,9 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBeUndefined();
+      expect(report.results.tests[0]?.duration).toBe(0);
     });
 
     it('should handle interrupted test runs', async () => {
@@ -606,9 +645,9 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.interrupted).toBeGreaterThanOrEqual(0);
+      expect(report.results.summary.other).toBeGreaterThanOrEqual(0);
     });
 
     it('should extract error location from stack traces', async () => {
@@ -651,111 +690,12 @@ describe('JestProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      const failedTest = unifiedReport.suites[0]?.tests[0];
-      expect(failedTest?.results[0]?.errors?.[0]?.location?.file).toBe('/project/tests/example.test.js');
-      expect(failedTest?.results[0]?.errors?.[0]?.location?.line).toBe(42);
-    });
-
-    it('should handle coverage data', async () => {
-      const jestReport = {
-        numTotalTests: 1,
-        numPassedTests: 1,
-        numFailedTests: 0,
-        numPendingTests: 0,
-        numTodoTests: 0,
-        startTime: 1703847600123,
-        testResults: [
-          {
-            testFilePath: '/project/tests/example.test.js',
-            numFailingTests: 0,
-            numPassingTests: 1,
-            numPendingTests: 0,
-            numTodoTests: 0,
-            perfStats: {
-              start: 1703847600123,
-              end: 1703847601123,
-              runtime: 1000,
-            },
-            assertionResults: [
-              {
-                ancestorTitles: [],
-                title: 'should pass',
-                fullName: 'should pass',
-                status: 'passed',
-                duration: 450,
-                failureMessages: [],
-              },
-            ],
-          },
-        ],
-        coverageMap: {
-          '/project/src/app.js': {
-            path: '/project/src/app.js',
-            s: { '0': 10, '1': 5 },
-            f: { '0': 8 },
-            b: { '0': [3, 2] },
-          },
-        },
-      };
-
-      const testFile = join(testDataDir, 'jest-report-coverage.json');
-      await fs.mkdir(testDataDir, { recursive: true });
-      await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
-
-      const unifiedReport = await provider.convert(testFile);
-
-      expect(unifiedReport.coverage).toBeDefined();
-      expect(unifiedReport.coverage?.statements).toBeDefined();
-      expect(unifiedReport.coverage?.functions).toBeDefined();
-      expect(unifiedReport.coverage?.branches).toBeDefined();
-    });
-
-    it('should set attempt number correctly', async () => {
-      const jestReport = {
-        numTotalTests: 1,
-        numPassedTests: 1,
-        numFailedTests: 0,
-        numPendingTests: 0,
-        numTodoTests: 0,
-        startTime: 1703847600123,
-        testResults: [
-          {
-            testFilePath: '/project/tests/example.test.js',
-            numFailingTests: 0,
-            numPassingTests: 1,
-            numPendingTests: 0,
-            numTodoTests: 0,
-            perfStats: {
-              start: 1703847600123,
-              end: 1703847601123,
-              runtime: 1000,
-            },
-            assertionResults: [
-              {
-                ancestorTitles: [],
-                title: 'should pass',
-                fullName: 'should pass',
-                status: 'passed',
-                duration: 450,
-                failureMessages: [],
-                invocations: 2,
-              },
-            ],
-          },
-        ],
-      };
-
-      const testFile = join(testDataDir, 'jest-report-attempts.json');
-      await fs.mkdir(testDataDir, { recursive: true });
-      await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
-
-      const unifiedReport = await provider.convert(testFile);
-
-      // Jest provider creates single attempt per test
-      expect(unifiedReport.suites[0]?.tests[0]?.results).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.attemptNumber).toBe(1);
+      const failedTest = report.results.tests[0];
+      expect(failedTest?.trace).toContain(
+        '/project/tests/example.test.js:42:15'
+      );
     });
   });
 });

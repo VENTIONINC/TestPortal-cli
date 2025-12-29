@@ -1,4 +1,4 @@
-import { UnifiedReport } from '@/types/unified-report';
+import { CTRFReport } from '@/types/ctrf';
 import {
   WebhookConfig,
   WebhookResponse,
@@ -6,7 +6,6 @@ import {
 } from '@/types/webhook';
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import FormData from 'form-data';
-import { convertUnifiedToCTRF } from '@/utils/ctrf-converter';
 
 export class HttpClient {
   private defaultTimeout = 30000;
@@ -14,7 +13,7 @@ export class HttpClient {
   private defaultRetryDelay = 1000;
 
   async sendWebhook(
-    report: UnifiedReport,
+    report: CTRFReport,
     config: WebhookConfig
   ): Promise<WebhookResponse> {
     const retryConfig: WebhookRetryConfig = {
@@ -31,19 +30,16 @@ export class HttpClient {
   }
 
   private async sendRequest(
-    report: UnifiedReport,
+    report: CTRFReport,
     config: WebhookConfig
   ): Promise<WebhookResponse> {
     const url = config.url;
     const method = config.method || 'POST';
     const timeout = config.timeout ?? this.defaultTimeout;
 
-    // Convert UnifiedReport to CTRF format
-    const ctrfReport = await convertUnifiedToCTRF(report);
-
     // Create FormData and append the CTRF report as a JSON file
     const formData = new FormData();
-    const reportJson = JSON.stringify(ctrfReport, null, 2);
+    const reportJson = JSON.stringify(report, null, 2);
     formData.append('report', reportJson, {
       filename: 'ctrf-report.json',
       contentType: 'application/json',

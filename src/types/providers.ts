@@ -1,4 +1,4 @@
-import { UnifiedReport } from '@/types/unified-report';
+import { CTRFReport } from '@/types/ctrf';
 import { WebhookConfig } from '@/types/webhook';
 
 export interface ConvertOptions {
@@ -12,7 +12,7 @@ export interface ConvertOptions {
 export interface BaseProvider {
   readonly name: string;
   validate(inputPath: string): Promise<boolean>;
-  convert(inputPath: string): Promise<UnifiedReport>;
+  convert(inputPath: string): Promise<CTRFReport>;
 }
 
 export interface ProviderRegistry {

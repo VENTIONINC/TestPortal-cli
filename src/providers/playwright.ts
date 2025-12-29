@@ -1,14 +1,7 @@
 import { promises as fs } from 'fs';
-import { randomUUID } from 'crypto';
-
 import { BaseProvider } from '@/types/providers';
-import {
-  UnifiedReport,
-  UnifiedTestSuite,
-  UnifiedTestResult,
-  UnifiedTestStatus,
-  UnifiedTestStats,
-} from '@/types/unified-report';
+import { CTRFReport, CTRFTest, TestStatus } from '@/types/ctrf';
+import { CTRFFactory } from '@/core/ctrf-factory';
 import {
   PlaywrightReport,
   PlaywrightTest,
@@ -36,198 +29,145 @@ export class PlaywrightProvider implements BaseProvider {
     }
   }
 
-  async convert(inputPath: string): Promise<UnifiedReport> {
+  async convert(inputPath: string): Promise<CTRFReport> {
     const content = await fs.readFile(inputPath, 'utf8');
     const playwrightReport: PlaywrightReport = JSON.parse(content);
 
-    const unifiedSuites = this.flattenSuites(playwrightReport.suites);
-    const stats = this.calculateStats(unifiedSuites, playwrightReport);
+    const tests = this.flattenSuites(playwrightReport.suites);
 
-    return {
-      id: randomUUID(),
-      runId: playwrightReport.runId,
-      framework: 'playwright',
-      frameworkVersion: playwrightReport.config.version || 'unknown',
-      toolVersion: playwrightReport.config.version || 'unknown',
-      stats,
-      suites: unifiedSuites,
-      createdAt: new Date().toISOString(),
+    let minStart = Infinity;
+    let maxEnd = 0;
+
+    const findTimes = (suites: PlaywrightSuite[]) => {
+      for (const suite of suites) {
+        if (suite.specs) {
+          for (const spec of suite.specs) {
+            for (const test of spec.tests) {
+              for (const result of test.results) {
+                const start = new Date(result.startTime).getTime();
+                const end = start + result.duration;
+                if (start < minStart) minStart = start;
+                if (end > maxEnd) maxEnd = end;
+              }
+            }
+          }
+        }
+        if (suite.suites) {
+          findTimes(suite.suites);
+        }
+      }
     };
+
+    findTimes(playwrightReport.suites);
+
+    if (minStart === Infinity) minStart = Date.now();
+    if (maxEnd === 0) maxEnd = Date.now();
+
+    return CTRFFactory.createReport(
+      tests,
+      'playwright',
+      playwrightReport.config.version,
+      minStart,
+      maxEnd
+    );
   }
 
   private flattenSuites(
     suites: PlaywrightSuite[],
     parentPath?: string
-  ): UnifiedTestSuite[] {
-    const flattened: UnifiedTestSuite[] = [];
+  ): CTRFTest[] {
+    const tests: CTRFTest[] = [];
 
     for (const suite of suites) {
-      const suiteId = randomUUID();
       const currentPath = parentPath
-        ? `${parentPath} › ${suite.title}`
+        ? `${parentPath} > ${suite.title}`
         : suite.title;
 
-      // Convert current suite
-      const unifiedSuite: UnifiedTestSuite = {
-        id: suiteId,
-        name: suite.title,
-        file: suite.file,
-        tests: this.convertSpecs(suite.specs),
-        duration: undefined, // Will be calculated after all tests are processed
-      };
-
-      // Only add suites that have direct tests (filter out empty parent suites)
-      if (unifiedSuite.tests.length > 0) {
-        flattened.push(unifiedSuite);
+      if (suite.specs) {
+        tests.push(...this.convertSpecs(suite.specs, currentPath, suite.file));
       }
 
-      // Recursively flatten child suites
       if (suite.suites) {
-        const childSuites = this.flattenSuites(suite.suites, currentPath);
-        flattened.push(...childSuites);
-      }
-    }
-
-    // Calculate durations after all suites are flattened
-    for (const suite of flattened) {
-      suite.duration = this.calculateSuiteDuration(suite.tests);
-    }
-
-    return flattened;
-  }
-
-  private convertSpecs(specs: PlaywrightSpec[]): UnifiedTestResult[] {
-    const tests: UnifiedTestResult[] = [];
-
-    for (const spec of specs) {
-      for (const test of spec.tests) {
-        tests.push(this.convertTest(test, spec));
+        tests.push(...this.flattenSuites(suite.suites, currentPath));
       }
     }
 
     return tests;
   }
 
+  private convertSpecs(
+    specs: PlaywrightSpec[],
+    suiteName: string,
+    file: string
+  ): CTRFTest[] {
+    const tests: CTRFTest[] = [];
+    for (const spec of specs) {
+      for (const test of spec.tests) {
+        tests.push(this.convertTest(test, spec.title, suiteName, file));
+      }
+    }
+    return tests;
+  }
+
   private convertTest(
     test: PlaywrightTest,
-    spec: PlaywrightSpec
-  ): UnifiedTestResult {
-    // Convert all execution attempts to results array
-    const results = test.results.map((result, index) => ({
-      attemptNumber: index + 1,
-      status: this.mapStatus(result.status),
-      duration: result.duration || 0,
-      startTime: result.startTime,
-      errors:
-        result.errors?.map(error => ({
-          message: error.message,
-          stack: error.stack,
-          location: error.location
-            ? {
-                file: error.location.file,
-                line: error.location.line,
-                column: error.location.column,
-              }
-            : undefined,
-          snippet: error.snippet,
-        })) || undefined,
-    }));
+    specTitle: string,
+    suiteName: string,
+    file: string
+  ): CTRFTest {
+    const lastResult = test.results[test.results.length - 1];
 
-    // Calculate summary information
-    const totalDuration = results.reduce(
-      (sum, r) => sum + (r.duration || 0),
-      0
-    );
-
-    const firstResult = results[0];
-    const lastResult = results[results.length - 1];
-
-    const finalStatus = this.determineFinalStatus(test, results);
-
-    return {
-      id: randomUUID(),
-      name: spec.title,
-      fullName: `${test.projectName || 'default'} › ${spec.title}`,
-      status: finalStatus,
-      duration: totalDuration,
-      startTime: firstResult?.startTime,
-      endTime: lastResult?.startTime, // TODO: Calculate proper end time
-      tags: spec.tags,
-      results, // ALL execution attempts
-    };
-  }
-
-  private determineFinalStatus(
-    test: PlaywrightTest,
-    results: Array<{ status: UnifiedTestStatus }>
-  ): UnifiedTestStatus {
-    // Always use the final result, regardless of whether it's flaky
-    if (results.length > 0) {
-      const lastResult = results[results.length - 1];
-
-      // Safety check for lastResult
-      if (!lastResult) {
-        return this.mapStatus(test.status);
-      }
-
-      // Return the final attempt's status
-      return lastResult.status;
+    if (!lastResult) {
+      return {
+        name: specTitle,
+        status: 'skipped',
+        duration: 0,
+        suite: suiteName,
+        filePath: file,
+      };
     }
 
-    // Fallback - use the mapped status from Playwright
-    return this.mapStatus(test.status);
+    const status = this.mapStatus(lastResult.status);
+
+    const ctrfTest: CTRFTest = {
+      name: specTitle,
+      status,
+      duration: lastResult.duration,
+      suite: suiteName,
+      filePath: file,
+      rawStatus: lastResult.status,
+      retry: test.results.length > 1 ? test.results.length - 1 : undefined,
+      flaky: test.results.length > 1 && status === 'passed',
+    };
+
+    if (status === 'failed') {
+      const error =
+        lastResult.error || (lastResult.errors && lastResult.errors[0]);
+      if (error) {
+        ctrfTest.message = error.message;
+        ctrfTest.trace = error.stack;
+      }
+    }
+
+    return ctrfTest;
   }
 
-  private mapStatus(playwrightStatus: PlaywrightStatus): UnifiedTestStatus {
-    switch (playwrightStatus) {
+  private mapStatus(status: PlaywrightStatus): TestStatus {
+    switch (status) {
       case 'passed':
         return 'passed';
       case 'failed':
-        return 'failed';
       case 'timedOut':
-        return 'timeout';
-      case 'interrupted':
-        return 'interrupted';
-      case 'skipped':
-        return 'skipped';
-      case 'flaky':
-        return 'passed'; // Flaky tests ultimately passed, so map to passed
       case 'unexpected':
         return 'failed';
+      case 'skipped':
+        return 'skipped';
+      case 'interrupted':
+        return 'other';
+      case 'flaky':
+        return 'passed';
       default:
-        return 'failed';
+        return 'other';
     }
-  }
-
-  private calculateSuiteDuration(tests: UnifiedTestResult[]): number {
-    return tests.reduce((sum, test) => sum + (test.duration || 0), 0);
-  }
-
-  private calculateStats(
-    suites: UnifiedTestSuite[],
-    playwrightReport: PlaywrightReport
-  ): UnifiedTestStats {
-    const allTests = suites.flatMap(suite => suite.tests);
-
-    const stats = playwrightReport.stats;
-    const startTime = stats?.startTime || new Date().toISOString();
-    const duration = stats?.duration || 0;
-    const endTime = new Date(
-      new Date(startTime).getTime() + duration
-    ).toISOString();
-
-    return {
-      total: allTests.length,
-      passed: allTests.filter(t => t.status === 'passed').length,
-      failed: allTests.filter(t => t.status === 'failed').length,
-      skipped: allTests.filter(t => t.status === 'skipped').length,
-      pending: allTests.filter(t => t.status === 'pending').length,
-      timeout: allTests.filter(t => t.status === 'timeout').length,
-      interrupted: allTests.filter(t => t.status === 'interrupted').length,
-      suites: suites.length,
-      duration,
-      startTime,
-      endTime,
-    };
   }
 }

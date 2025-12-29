@@ -1,14 +1,7 @@
 import { promises as fs } from 'fs';
-import { randomUUID } from 'crypto';
 import { BaseProvider } from '@/types/providers';
-import {
-  UnifiedReport,
-  UnifiedTestSuite,
-  UnifiedTestResult,
-  UnifiedTestStatus,
-  UnifiedTestStats,
-  UnifiedCoverage,
-} from '@/types/unified-report';
+import { CTRFReport, CTRFTest, TestStatus } from '@/types/ctrf';
+import { CTRFFactory } from '@/core/ctrf-factory';
 import {
   JestReport,
   JestTestResult,
@@ -37,106 +30,89 @@ export class JestProvider implements BaseProvider {
     }
   }
 
-  async convert(inputPath: string): Promise<UnifiedReport> {
+  async convert(inputPath: string): Promise<CTRFReport> {
     const content = await fs.readFile(inputPath, 'utf8');
     const jestReport: JestReport = JSON.parse(content);
 
-    const unifiedSuites = this.convertTestResults(jestReport.testResults);
-    const stats = this.calculateStats(unifiedSuites, jestReport);
-    const coverage = this.convertCoverage(jestReport.coverageMap);
+    const tests = this.convertTestResults(jestReport.testResults);
 
-    return {
-      id: randomUUID(),
-      framework: 'jest',
-      stats,
-      suites: unifiedSuites,
-      ...(coverage && { coverage }),
-      createdAt: new Date().toISOString(),
-    };
-  }
+    // Calculate start/end time
+    const startTime = jestReport.startTime;
+    let maxEndTime = startTime;
 
-  private convertTestResults(
-    testResults: JestTestResult[]
-  ): UnifiedTestSuite[] {
-    const suites: UnifiedTestSuite[] = [];
-
-    for (const testResult of testResults) {
-      // Skip test files that were skipped entirely
-      if (testResult.skipped) {
-        continue;
+    jestReport.testResults.forEach(suite => {
+      if (suite.perfStats?.end) {
+        maxEndTime = Math.max(maxEndTime, suite.perfStats.end);
+      } else if (suite.perfStats?.runtime) {
+        maxEndTime = Math.max(maxEndTime, startTime + suite.perfStats.runtime);
       }
+    });
 
-      // Only include suites that have tests
-      if (
-        testResult.assertionResults &&
-        testResult.assertionResults.length > 0
-      ) {
-        const suite: UnifiedTestSuite = {
-          id: randomUUID(),
-          name: this.extractSuiteName(testResult.testFilePath),
-          file: testResult.testFilePath,
-          tests: this.convertAssertionResults(testResult.assertionResults),
-          duration: testResult.perfStats?.runtime,
-        };
-
-        suites.push(suite);
-      }
-    }
-
-    return suites;
-  }
-
-  private convertAssertionResults(
-    assertionResults: JestAssertionResult[]
-  ): UnifiedTestResult[] {
-    return assertionResults.map(assertion =>
-      this.convertAssertionResult(assertion)
+    return CTRFFactory.createReport(
+      tests,
+      'jest',
+      undefined,
+      startTime,
+      maxEndTime
     );
   }
 
-  private convertAssertionResult(
-    assertion: JestAssertionResult
-  ): UnifiedTestResult {
-    const status = this.mapStatus(assertion.status);
+  private convertTestResults(testResults: JestTestResult[]): CTRFTest[] {
+    const tests: CTRFTest[] = [];
 
-    // Create a single result attempt (Jest doesn't have retry mechanism by default)
-    const results = [
-      {
-        attemptNumber: 1,
-        status: status,
-        duration: assertion.duration,
-        startTime: undefined, // Not available in Jest output
-        errors: this.extractErrors(assertion),
-      },
-    ];
+    for (const testResult of testResults) {
+      if (testResult.skipped) continue;
 
-    return {
-      id: randomUUID(),
-      name: assertion.title,
-      fullName: assertion.fullName,
-      status: status,
-      duration: assertion.duration,
-      startTime: undefined, // Not available in Jest output
-      endTime: undefined, // Not available in Jest output
-      tags: undefined, // Jest doesn't have built-in tagging
-      assertions: assertion.numPassingAsserts,
-      results: results,
-    };
+      if (testResult.assertionResults) {
+        for (const assertion of testResult.assertionResults) {
+          tests.push(
+            this.convertAssertionResult(assertion, testResult.testFilePath)
+          );
+        }
+      }
+    }
+
+    return tests;
   }
 
-  private extractErrors(assertion: JestAssertionResult) {
+  private convertAssertionResult(
+    assertion: JestAssertionResult,
+    filePath: string
+  ): CTRFTest {
+    const status = this.mapStatus(assertion.status);
+
+    const test: CTRFTest = {
+      name: assertion.title,
+      status,
+      duration: assertion.duration || 0,
+      filePath,
+      rawStatus: assertion.status,
+      suite: assertion.ancestorTitles?.join(' > '),
+    };
+
+    if (status === 'failed') {
+      const error = this.extractError(assertion);
+      if (error) {
+        test.message = error.message;
+        test.trace = error.stack;
+      }
+    }
+
+    return test;
+  }
+
+  private extractError(assertion: JestAssertionResult) {
     if (!assertion.failureMessages || assertion.failureMessages.length === 0) {
       return undefined;
     }
 
-    return assertion.failureMessages.map(message => {
-      const location = this.extractLocationFromStack(message);
-      return {
-        message: this.extractErrorMessage(message),
-        stack: message,
-        ...(location && { location }),
-      };
-    });
+    const message = assertion.failureMessages[0];
+    if (!message) return undefined;
+
+    return {
+      message: this.extractErrorMessage(message),
+      stack: message,
+    };
   }
 
   private extractErrorMessage(failureMessage: string): string {
@@ -157,26 +133,7 @@ export class JestProvider implements BaseProvider {
     return lines.find(line => line.trim().length > 0) || 'Test failed';
   }
 
-  private extractLocationFromStack(stack: string) {
-    // Extract file location from Jest stack trace
-    const stackLines = stack.split('\n');
-
-    for (const line of stackLines) {
-      // Look for lines like "at Object.<anonymous> (/path/to/file.js:14:28)"
-      const match = line.match(/at .+ \((.+):(\d+):(\d+)\)/);
-      if (match && match[1] && match[2] && match[3]) {
-        return {
-          file: match[1],
-          line: parseInt(match[2], 10),
-          column: parseInt(match[3], 10),
-        };
-      }
-    }
-
-    return undefined;
-  }
-
-  private mapStatus(jestStatus: JestTestStatus): UnifiedTestStatus {
+  private mapStatus(jestStatus: JestTestStatus): TestStatus {
     switch (jestStatus) {
       case 'passed':
         return 'passed';
@@ -185,132 +142,9 @@ export class JestProvider implements BaseProvider {
       case 'pending':
         return 'pending';
       case 'todo':
-        return 'todo';
+        return 'pending';
       default:
         return 'failed';
     }
-  }
-
-  private extractSuiteName(testFilePath: string): string {
-    // Extract suite name from file path like "/project/src/__tests__/auth.test.js"
-    const parts = testFilePath.split('/');
-    const fileName = parts[parts.length - 1] || 'unknown';
-    return fileName.replace(/\.(test|spec)\.(js|ts|jsx|tsx)$/, '');
-  }
-
-  private calculateStats(
-    suites: UnifiedTestSuite[],
-    jestReport: JestReport
-  ): UnifiedTestStats {
-    const allTests = suites.flatMap(suite => suite.tests);
-
-    // Convert Jest timestamp (epoch milliseconds) to ISO string
-    const startTime = new Date(jestReport.startTime).toISOString();
-
-    // Calculate end time and duration from the test results
-    const endTimes = suites
-      .map(suite => suite.duration || 0)
-      .filter(duration => duration > 0);
-
-    const maxEndTime = endTimes.length > 0 ? Math.max(...endTimes) : 0;
-    const endTime = new Date(jestReport.startTime + maxEndTime).toISOString();
-    const duration = maxEndTime;
-
-    return {
-      total: jestReport.numTotalTests,
-      passed: jestReport.numPassedTests,
-      failed: jestReport.numFailedTests,
-      skipped: 0, // Jest doesn't have a direct "skipped" concept
-      pending: jestReport.numPendingTests,
-      todo: jestReport.numTodoTests,
-      timeout: 0, // Jest reports timeouts as failures
-      interrupted: jestReport.wasInterrupted ? 1 : 0,
-      suites: jestReport.numTotalTestSuites,
-      duration,
-      startTime,
-      endTime,
-    };
-  }
-
-  private convertCoverage(coverageMap?: any): UnifiedCoverage | undefined {
-    if (!coverageMap) {
-      return undefined;
-    }
-
-    // Jest coverage is complex, so we'll aggregate the data
-    let totalStatements = 0;
-    let coveredStatements = 0;
-    let totalBranches = 0;
-    let coveredBranches = 0;
-    let totalFunctions = 0;
-    let coveredFunctions = 0;
-    let totalLines = 0;
-    let coveredLines = 0;
-
-    for (const [filePath, fileData] of Object.entries(coverageMap)) {
-      const data = fileData as any;
-
-      if (data.s) {
-        // Statements
-        const statements = Object.values(data.s) as number[];
-        totalStatements += statements.length;
-        coveredStatements += statements.filter(count => count > 0).length;
-      }
-
-      if (data.b) {
-        // Branches
-        const branches = Object.values(data.b) as number[][];
-        for (const branchCounts of branches) {
-          totalBranches += branchCounts.length;
-          coveredBranches += branchCounts.filter(count => count > 0).length;
-        }
-      }
-
-      if (data.f) {
-        // Functions
-        const functions = Object.values(data.f) as number[];
-        totalFunctions += functions.length;
-        coveredFunctions += functions.filter(count => count > 0).length;
-      }
-    }
-
-    // Lines coverage is typically the same as statements in Jest
-    totalLines = totalStatements;
-    coveredLines = coveredStatements;
-
-    return {
-      statements:
-        totalStatements > 0
-          ? {
-              total: totalStatements,
-              covered: coveredStatements,
-              percentage: (coveredStatements / totalStatements) * 100,
-            }
-          : undefined,
-      branches:
-        totalBranches > 0
-          ? {
-              total: totalBranches,
-              covered: coveredBranches,
-              percentage: (coveredBranches / totalBranches) * 100,
-            }
-          : undefined,
-      functions:
-        totalFunctions > 0
-          ? {
-              total: totalFunctions,
-              covered: coveredFunctions,
-              percentage: (coveredFunctions / totalFunctions) * 100,
-            }
-          : undefined,
-      lines:
-        totalLines > 0
-          ? {
-              total: totalLines,
-              covered: coveredLines,
-              percentage: (coveredLines / totalLines) * 100,
-            }
-          : undefined,
-    };
   }
 }

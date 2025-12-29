@@ -80,15 +80,15 @@ describe('TestNGProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, testngReport, 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.framework).toBe('testng');
-      expect(unifiedReport.suites).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.name).toBe('com.example.TestClass');
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('testMethod');
-      expect(unifiedReport.stats.total).toBe(1);
-      expect(unifiedReport.stats.passed).toBe(1);
+      expect(report.results.tool.name).toBe('testng');
+      expect(report.results.tests).toHaveLength(1);
+      expect(report.results.tests[0]?.suite).toBe('com.example.TestClass');
+      expect(report.results.tests[0]?.status).toBe('passed');
+      expect(report.results.tests[0]?.name).toBe('testMethod');
+      expect(report.results.summary.tests).toBe(1);
+      expect(report.results.summary.passed).toBe(1);
     });
 
     it('should handle failed tests with exceptions', async () => {
@@ -113,16 +113,14 @@ describe('TestNGProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, testngReport, 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.failed).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(
-        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors
-      ).toBeDefined();
-      expect(
-        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
-      ).toBe('Expected true but found false');
+      expect(report.results.summary.failed).toBe(1);
+      expect(report.results.tests[0]?.status).toBe('failed');
+      expect(report.results.tests[0]?.message).toBeDefined();
+      expect(report.results.tests[0]?.message).toBe(
+        'Expected true but found false'
+      );
     });
 
     it('should ignore config methods', async () => {
@@ -143,11 +141,11 @@ describe('TestNGProvider', () => {
       await fs.mkdir(testDataDir, { recursive: true });
       await fs.writeFile(testFile, testngReport, 'utf8');
 
-      const unifiedReport = await provider.convert(testFile);
+      const report = await provider.convert(testFile);
 
-      expect(unifiedReport.stats.total).toBe(1);
-      expect(unifiedReport.suites[0]?.tests).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('testMethod');
+      expect(report.results.summary.tests).toBe(1);
+      expect(report.results.tests).toHaveLength(1);
+      expect(report.results.tests[0]?.name).toBe('testMethod');
     });
   });
 });
