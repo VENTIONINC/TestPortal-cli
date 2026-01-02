@@ -450,6 +450,8 @@ npm run dev -- -i examples/vitest-report-with-env.json -t vitest -o output.json
 node dist/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
 ```
 
+For information on how to release new versions, see [docs/RELEASING.md](docs/RELEASING.md).
+
 ## 📋 Requirements
 
 - Node.js >= 18.0.0

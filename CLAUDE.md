@@ -9,24 +9,32 @@ This is test-report-ctrfer, a TypeScript CLI tool and library that converts test
 ## Development Commands
 
 **Build and Development:**
+
 - `npm run build` - Compile TypeScript and resolve aliases
 - `npm run dev` - Run CLI in development mode with ts-node
 - `npm run clean` - Remove dist directory
 
 **Testing:**
+
 - `npm test` - Run all tests with Jest
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage report
 
 **Code Quality:**
+
 - `npm run lint` - Lint TypeScript files
 - `npm run lint:fix` - Auto-fix linting issues
 - `npm run typecheck` - Type checking without emitting files
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check formatting without fixing
 
+**Releasing:**
+
+- See [docs/RELEASING.md](docs/RELEASING.md) for the full release flow (merge to main, bump version, tag, and push).
+
 **CLI Testing:**
 Use `npm run dev` to test CLI functionality during development:
+
 ```bash
 npm run dev -- -i examples/playwright-example.json -t playwright -o output.json
 ```
@@ -36,27 +44,32 @@ npm run dev -- -i examples/playwright-example.json -t playwright -o output.json
 ### Core Components
 
 **Converter System (`src/core/`):**
+
 - `Converter` - Main orchestrator that handles conversion flow, output, and webhook delivery
 - `ProviderRegistry` - Registry pattern for managing test framework providers
 
 **Provider Pattern (`src/providers/`):**
+
 - `BaseProvider` interface defines the contract for all providers
 - Each provider implements `validate()` and `convert()` methods
 - Currently supports Playwright, with extensible design for additional frameworks
 
 **Type System (`src/types/`):**
+
 - `ctrf.ts` - CTRF format schemas with Zod validation
 - `providers.ts` - Provider interfaces and configuration types
 - `webhook.ts` - Webhook configuration types
 - Framework-specific types (e.g., `playwright.ts`)
 
 **Utilities (`src/utils/`):**
+
 - `http-client.ts` - HTTP client with retry logic and authentication
 - `environment.ts` - CI/CD environment detection (GitHub Actions, GitLab, etc.)
 
 ### Path Aliases
 
 The project uses TypeScript path aliases configured in `tsconfig.json`:
+
 - `@/*` maps to `src/*`
 - `@/types/*` maps to `src/types/*`
 - `@/core/*` maps to `src/core/*`
@@ -95,6 +108,7 @@ Coverage threshold is set to 50% minimum across all metrics.
 ## CLI Binary
 
 The CLI is built as `ctrf-convert` and entry point is `src/cli.ts`. The binary uses Commander.js for argument parsing and supports:
+
 - Required: input file path and provider type
 - Optional: output file, webhook URL, authentication, retry configuration
 - Multiple output modes: file, stdout, webhook (can be combined)
@@ -102,11 +116,13 @@ The CLI is built as `ctrf-convert` and entry point is `src/cli.ts`. The binary u
 ## Dependencies
 
 **Runtime:**
+
 - `commander` - CLI argument parsing
 - `axios` - HTTP client for webhooks
 - `zod` - Runtime type validation and schema definition
 
 **Development:**
+
 - TypeScript with strict configuration
 - Jest for testing with ts-jest preset
 - ESLint + Prettier for code formatting
