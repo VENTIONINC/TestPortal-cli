@@ -8,7 +8,11 @@ describe('MochaProvider', () => {
 
   beforeEach(() => {
     provider = new MochaProvider();
-    testDataDir = join(__dirname, 'test-data', `mocha-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `mocha-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {
@@ -107,6 +111,41 @@ describe('MochaProvider', () => {
   });
 
   describe('convert', () => {
+    it('should handle skipped tests', async () => {
+      const mochaReport = {
+        stats: {
+          suites: 1,
+          tests: 1,
+          passes: 0,
+          pending: 1,
+          failures: 0,
+          start: '2024-01-01T00:00:00.000Z',
+          end: '2024-01-01T00:00:01.000Z',
+          duration: 1000,
+        },
+        tests: [
+          {
+            title: 'should be skipped',
+            fullTitle: 'Test Suite should be skipped',
+            file: '/project/test/skipped.test.js',
+            duration: 0,
+            pass: false,
+            fail: false,
+            pending: true,
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'mocha-skipped.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(mochaReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
+    });
+
     it('should convert basic mocha report with passing tests', async () => {
       const mochaReport = {
         stats: {
@@ -148,10 +187,14 @@ describe('MochaProvider', () => {
       expect(unifiedReport.framework).toBe('mocha');
       expect(unifiedReport.suites).toHaveLength(1);
       expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('should pass test 1');
+      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe(
+        'should pass test 1'
+      );
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
       expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(900);
-      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe('should pass test 2');
+      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe(
+        'should pass test 2'
+      );
       expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('passed');
       expect(unifiedReport.stats.total).toBe(2);
       expect(unifiedReport.stats.passed).toBe(2);
@@ -210,10 +253,18 @@ describe('MochaProvider', () => {
 
       const failedTest = unifiedReport.suites[0]?.tests[1];
       expect(failedTest?.status).toBe('failed');
-      expect(failedTest?.results[0]?.errors?.[0]?.message).toBe('expected 500 to equal 200');
-      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain('AssertionError');
-      expect(failedTest?.results[0]?.errors?.[0]?.diff).toContain('Expected: 200');
-      expect(failedTest?.results[0]?.errors?.[0]?.diff).toContain('Actual: 500');
+      expect(failedTest?.results[0]?.errors?.[0]?.message).toBe(
+        'expected 500 to equal 200'
+      );
+      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain(
+        'AssertionError'
+      );
+      expect(failedTest?.results[0]?.errors?.[0]?.diff).toContain(
+        'Expected: 200'
+      );
+      expect(failedTest?.results[0]?.errors?.[0]?.diff).toContain(
+        'Actual: 500'
+      );
 
       expect(unifiedReport.stats.total).toBe(2);
       expect(unifiedReport.stats.passed).toBe(1);
@@ -258,8 +309,8 @@ describe('MochaProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('pending');
-      expect(unifiedReport.stats.pending).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('skipped');
+      expect(unifiedReport.stats.skipped).toBe(1);
       expect(unifiedReport.stats.passed).toBe(1);
     });
 
@@ -509,7 +560,9 @@ describe('MochaProvider', () => {
 
       const unifiedReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.attemptNumber).toBe(3);
+      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.attemptNumber).toBe(
+        3
+      );
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
     });
 
@@ -575,7 +628,7 @@ describe('MochaProvider', () => {
       expect(unifiedReport.stats.total).toBe(5);
       expect(unifiedReport.stats.passed).toBe(2);
       expect(unifiedReport.stats.failed).toBe(2);
-      expect(unifiedReport.stats.pending).toBe(1);
+      expect(unifiedReport.stats.skipped).toBe(1);
       expect(unifiedReport.stats.duration).toBe(5000);
     });
 
@@ -666,7 +719,9 @@ describe('MochaProvider', () => {
 
       // Mocha provider creates single attempt per test (unless retry is used)
       expect(unifiedReport.suites[0]?.tests[0]?.results).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.attemptNumber).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.attemptNumber).toBe(
+        1
+      );
     });
 
     it('should handle tests with missing error objects', async () => {

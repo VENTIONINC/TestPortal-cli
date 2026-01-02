@@ -9,7 +9,11 @@ describe('VitestProvider', () => {
 
   beforeEach(() => {
     provider = new VitestProvider();
-    testDataDir = join(__dirname, 'test-data', `vitest-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `vitest-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {
@@ -94,6 +98,67 @@ describe('VitestProvider', () => {
   });
 
   describe('convert', () => {
+    it('should handle skipped tests', async () => {
+      const vitestReport = {
+        numTotalTestSuites: 1,
+        numPassedTestSuites: 1,
+        numFailedTestSuites: 0,
+        numPendingTestSuites: 0,
+        numTotalTests: 1,
+        numPassedTests: 0,
+        numFailedTests: 0,
+        numPendingTests: 1,
+        numTodoTests: 0,
+        snapshot: {
+          added: 0,
+          failure: false,
+          filesAdded: 0,
+          filesRemoved: 0,
+          filesRemovedList: [],
+          filesUnmatched: 0,
+          filesUpdated: 0,
+          matched: 0,
+          total: 0,
+          unchecked: 0,
+          uncheckedKeysByFile: [],
+          unmatched: 0,
+          updated: 0,
+          didUpdate: false,
+        },
+        startTime: 1761646529949,
+        success: true,
+        testResults: [
+          {
+            assertionResults: [
+              {
+                ancestorTitles: [],
+                fullName: 'should be skipped',
+                status: 'pending',
+                title: 'should be skipped',
+                duration: 0,
+                failureMessages: [],
+                meta: {},
+              },
+            ],
+            startTime: 1761646530086,
+            endTime: 1761646530086.78,
+            status: 'passed',
+            message: '',
+            name: '/Users/test/skipped.test.ts',
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'vitest-skipped.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(vitestReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
+    });
+
     it('should convert basic vitest report to unified report', async () => {
       const vitestReport = {
         numTotalTestSuites: 1,

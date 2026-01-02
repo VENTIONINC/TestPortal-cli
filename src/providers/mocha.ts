@@ -112,7 +112,7 @@ export class MochaProvider implements BaseProvider {
   private mapStatus(test: MochaTest): UnifiedTestStatus {
     // Check explicit flags first
     if (test.pending === true) {
-      return 'pending';
+      return 'skipped';
     }
 
     if (test.skipped === true) {
@@ -189,8 +189,8 @@ export class MochaProvider implements BaseProvider {
     const total = mochaReport.stats.tests || allTests.length;
     const passed = mochaReport.stats.passes || 0;
     const failed = mochaReport.stats.failures || 0;
-    const pending = mochaReport.stats.pending || 0;
-    const skipped = mochaReport.stats.skipped || 0;
+    const pending = 0;
+    const skipped = mochaReport.stats.skipped || mochaReport.stats.pending || 0;
 
     // Calculate duration
     const duration = mochaReport.stats.duration || 0;

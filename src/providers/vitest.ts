@@ -177,7 +177,7 @@ export class VitestProvider implements BaseProvider {
       case 'skipped':
         return 'skipped';
       case 'pending':
-        return 'pending';
+        return 'skipped';
       case 'todo':
         return 'todo';
       default:
@@ -212,8 +212,8 @@ export class VitestProvider implements BaseProvider {
       total: vitestReport.numTotalTests,
       passed: vitestReport.numPassedTests,
       failed: vitestReport.numFailedTests,
-      skipped: 0, // Vitest doesn't have a direct "skipped" concept in top-level stats
-      pending: vitestReport.numPendingTests,
+      skipped: vitestReport.numPendingTests, // Vitest uses pending for skipped tests
+      pending: 0,
       todo: vitestReport.numTodoTests,
       timeout: 0, // Vitest reports timeouts as failures
       interrupted: 0,

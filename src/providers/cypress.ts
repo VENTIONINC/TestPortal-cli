@@ -125,7 +125,7 @@ export class CypressProvider implements BaseProvider {
       case 'failed':
         return 'failed';
       case 'pending':
-        return 'pending';
+        return 'skipped';
       default:
         return 'failed';
     }

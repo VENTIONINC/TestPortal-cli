@@ -8,7 +8,11 @@ describe('JestProvider', () => {
 
   beforeEach(() => {
     provider = new JestProvider();
-    testDataDir = join(__dirname, 'test-data', `jest-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `jest-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {
@@ -84,6 +88,94 @@ describe('JestProvider', () => {
   });
 
   describe('convert', () => {
+    it('should handle todo tests', async () => {
+      const jestReport = {
+        numTotalTests: 1,
+        numPassedTests: 0,
+        numFailedTests: 0,
+        numPendingTests: 0,
+        numTodoTests: 1,
+        startTime: 1703847600123,
+        testResults: [
+          {
+            testFilePath: '/project/tests/todo.test.js',
+            numFailingTests: 0,
+            numPassingTests: 0,
+            numPendingTests: 0,
+            numTodoTests: 1,
+            perfStats: {
+              start: 1703847600123,
+              end: 1703847601123,
+              runtime: 1000,
+            },
+            assertionResults: [
+              {
+                ancestorTitles: ['Test Suite'],
+                title: 'should be todo',
+                fullName: 'Test Suite should be todo',
+                status: 'todo',
+                duration: 0,
+                failureMessages: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'jest-todo.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.todo).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('todo');
+    });
+
+    it('should handle skipped tests', async () => {
+      const jestReport = {
+        numTotalTests: 1,
+        numPassedTests: 0,
+        numFailedTests: 0,
+        numPendingTests: 1,
+        numTodoTests: 0,
+        startTime: 1703847600123,
+        testResults: [
+          {
+            testFilePath: '/project/tests/skipped.test.js',
+            numFailingTests: 0,
+            numPassingTests: 0,
+            numPendingTests: 1,
+            numTodoTests: 0,
+            perfStats: {
+              start: 1703847600123,
+              end: 1703847601123,
+              runtime: 1000,
+            },
+            assertionResults: [
+              {
+                ancestorTitles: ['Test Suite'],
+                title: 'should be skipped',
+                fullName: 'Test Suite should be skipped',
+                status: 'pending',
+                duration: 0,
+                failureMessages: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'jest-skipped.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(jestReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
+    });
+
     it('should convert basic jest report with passing tests', async () => {
       const jestReport = {
         numTotalTests: 2,
@@ -135,10 +227,14 @@ describe('JestProvider', () => {
       expect(unifiedReport.framework).toBe('jest');
       expect(unifiedReport.suites).toHaveLength(1);
       expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('should pass test 1');
+      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe(
+        'should pass test 1'
+      );
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
       expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(450);
-      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe('should pass test 2');
+      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe(
+        'should pass test 2'
+      );
       expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('passed');
       expect(unifiedReport.stats.total).toBe(2);
       expect(unifiedReport.stats.passed).toBe(2);
@@ -200,10 +296,18 @@ describe('JestProvider', () => {
 
       const failedTest = unifiedReport.suites[0]?.tests[1];
       expect(failedTest?.status).toBe('failed');
-      expect(failedTest?.results[0]?.errors?.[0]?.message).toBe('expect(received).toBe(expected)');
-      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain('Expected: 200');
-      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain('Received: 500');
-      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain('/project/tests/example.test.js:25:29');
+      expect(failedTest?.results[0]?.errors?.[0]?.message).toBe(
+        'expect(received).toBe(expected)'
+      );
+      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain(
+        'Expected: 200'
+      );
+      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain(
+        'Received: 500'
+      );
+      expect(failedTest?.results[0]?.errors?.[0]?.stack).toContain(
+        '/project/tests/example.test.js:25:29'
+      );
 
       expect(unifiedReport.stats.total).toBe(2);
       expect(unifiedReport.stats.passed).toBe(1);
@@ -259,8 +363,8 @@ describe('JestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('pending');
-      expect(unifiedReport.stats.pending).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('skipped');
+      expect(unifiedReport.stats.skipped).toBe(1);
       expect(unifiedReport.stats.passed).toBe(1);
     });
 
@@ -503,11 +607,46 @@ describe('JestProvider', () => {
               runtime: 3000,
             },
             assertionResults: [
-              { ancestorTitles: [], title: 't1', fullName: 't1', status: 'passed', duration: 100, failureMessages: [] },
-              { ancestorTitles: [], title: 't2', fullName: 't2', status: 'passed', duration: 200, failureMessages: [] },
-              { ancestorTitles: [], title: 't3', fullName: 't3', status: 'failed', duration: 150, failureMessages: ['error'] },
-              { ancestorTitles: [], title: 't4', fullName: 't4', status: 'failed', duration: 250, failureMessages: ['error'] },
-              { ancestorTitles: [], title: 't5', fullName: 't5', status: 'pending', duration: 0, failureMessages: [] },
+              {
+                ancestorTitles: [],
+                title: 't1',
+                fullName: 't1',
+                status: 'passed',
+                duration: 100,
+                failureMessages: [],
+              },
+              {
+                ancestorTitles: [],
+                title: 't2',
+                fullName: 't2',
+                status: 'passed',
+                duration: 200,
+                failureMessages: [],
+              },
+              {
+                ancestorTitles: [],
+                title: 't3',
+                fullName: 't3',
+                status: 'failed',
+                duration: 150,
+                failureMessages: ['error'],
+              },
+              {
+                ancestorTitles: [],
+                title: 't4',
+                fullName: 't4',
+                status: 'failed',
+                duration: 250,
+                failureMessages: ['error'],
+              },
+              {
+                ancestorTitles: [],
+                title: 't5',
+                fullName: 't5',
+                status: 'pending',
+                duration: 0,
+                failureMessages: [],
+              },
             ],
           },
         ],
@@ -522,7 +661,7 @@ describe('JestProvider', () => {
       expect(unifiedReport.stats.total).toBe(5);
       expect(unifiedReport.stats.passed).toBe(2);
       expect(unifiedReport.stats.failed).toBe(2);
-      expect(unifiedReport.stats.pending).toBe(1);
+      expect(unifiedReport.stats.skipped).toBe(1);
     });
 
     it('should handle tests without duration', async () => {
@@ -654,7 +793,9 @@ describe('JestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       const failedTest = unifiedReport.suites[0]?.tests[0];
-      expect(failedTest?.results[0]?.errors?.[0]?.location?.file).toBe('/project/tests/example.test.js');
+      expect(failedTest?.results[0]?.errors?.[0]?.location?.file).toBe(
+        '/project/tests/example.test.js'
+      );
       expect(failedTest?.results[0]?.errors?.[0]?.location?.line).toBe(42);
     });
 
@@ -755,7 +896,9 @@ describe('JestProvider', () => {
 
       // Jest provider creates single attempt per test
       expect(unifiedReport.suites[0]?.tests[0]?.results).toHaveLength(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.attemptNumber).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.attemptNumber).toBe(
+        1
+      );
     });
   });
 });
