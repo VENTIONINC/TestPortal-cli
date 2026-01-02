@@ -75,6 +75,41 @@ describe('CTRF Converter', () => {
       expect(result.results.tests).toHaveLength(2);
     });
 
+    it('should map todo status to pending in CTRF summary and tests', async () => {
+      const todoReport: UnifiedReport = {
+        ...mockUnifiedReport,
+        stats: {
+          ...mockUnifiedReport.stats,
+          total: 1,
+          passed: 0,
+          failed: 0,
+          todo: 1,
+        },
+        suites: [
+          {
+            id: 'suite-1',
+            name: 'Test Suite',
+            tests: [
+              {
+                id: 'test-1',
+                name: 'todo test',
+                fullName: 'todo test',
+                status: 'todo',
+                duration: 0,
+                results: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = await convertUnifiedToCTRF(todoReport);
+
+      expect(result.results.summary.pending).toBe(1);
+      expect(result.results.summary.other).toBe(0);
+      expect(result.results.tests[0]?.status).toBe('pending');
+    });
+
     it('should include environment information', async () => {
       const result = await convertUnifiedToCTRF(mockUnifiedReport);
 
@@ -133,7 +168,8 @@ describe('CTRF Converter', () => {
       process.env.GITLAB_CI = 'true';
       process.env.CI_PROJECT_NAME = 'test-project';
       process.env.CI_PIPELINE_ID = '789';
-      process.env.CI_PIPELINE_URL = 'https://gitlab.com/project/-/pipelines/789';
+      process.env.CI_PIPELINE_URL =
+        'https://gitlab.com/project/-/pipelines/789';
       process.env.CI_PROJECT_PATH = 'group/project';
       process.env.CI_PROJECT_URL = 'https://gitlab.com/group/project';
       process.env.CI_COMMIT_REF_NAME = 'develop';

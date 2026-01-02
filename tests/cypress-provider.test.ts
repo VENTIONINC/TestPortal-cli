@@ -118,6 +118,69 @@ describe('CypressProvider', () => {
   });
 
   describe('convert', () => {
+    it('should handle skipped tests', async () => {
+      const cypressReport = {
+        stats: {
+          suites: 1,
+          tests: 1,
+          passes: 0,
+          pending: 1,
+          failures: 0,
+          start: '2024-01-01T00:00:00.000Z',
+          end: '2024-01-01T00:00:01.000Z',
+          duration: 1000,
+        },
+        results: [
+          {
+            uuid: 'suite-uuid-1',
+            title: 'Skipped Suite',
+            fullFile: 'cypress/e2e/skipped.cy.js',
+            file: 'cypress/e2e/skipped.cy.js',
+            beforeHooks: [],
+            afterHooks: [],
+            tests: [
+              {
+                title: ['Skipped Suite', 'should be skipped'],
+                fullTitle: 'Skipped Suite should be skipped',
+                timedOut: null,
+                duration: 0,
+                state: 'pending',
+                speed: null,
+                pass: false,
+                fail: false,
+                pending: true,
+                context: null,
+                code: 'cy.skip()',
+                err: {},
+                uuid: 'test-uuid-1',
+                parentUUID: 'suite-uuid-1',
+                isHook: false,
+                skipped: true,
+              },
+            ],
+            suites: [],
+            passes: [],
+            failures: [],
+            pending: ['test-uuid-1'],
+            skipped: [],
+            duration: 0,
+            root: false,
+            rootEmpty: false,
+            _timeout: 2000,
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'cypress-skipped.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(cypressReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
+    });
+
     it('should convert basic cypress report with passing tests', async () => {
       const cypressReport = {
         stats: {
@@ -362,8 +425,8 @@ describe('CypressProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.stats.total).toBe(1);
-      expect(unifiedReport.stats.pending).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('pending');
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
     });
 
     it('should handle multiple suites', async () => {

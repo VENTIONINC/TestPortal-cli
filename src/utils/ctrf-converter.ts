@@ -63,12 +63,10 @@ export async function convertUnifiedToCTRF(
         tests: unified.stats.total,
         passed: unified.stats.passed,
         failed: unified.stats.failed,
-        pending: unified.stats.pending || 0,
+        pending: (unified.stats.pending || 0) + (unified.stats.todo || 0),
         skipped: unified.stats.skipped,
         other:
-          (unified.stats.timeout || 0) +
-          (unified.stats.interrupted || 0) +
-          (unified.stats.todo || 0),
+          (unified.stats.timeout || 0) + (unified.stats.interrupted || 0),
         start: new Date(unified.stats.startTime).getTime(),
         stop: unified.stats.endTime
           ? new Date(unified.stats.endTime).getTime()

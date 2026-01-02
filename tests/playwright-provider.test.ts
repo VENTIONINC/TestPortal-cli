@@ -56,6 +56,62 @@ describe('PlaywrightProvider', () => {
   });
 
   describe('convert', () => {
+    it('should handle skipped tests', async () => {
+      const playwrightReport = {
+        config: {
+          version: '1.43.0',
+        },
+        suites: [
+          {
+            title: 'Test Suite',
+            file: 'test.spec.ts',
+            line: 1,
+            column: 1,
+            specs: [
+              {
+                title: 'should be skipped',
+                ok: true,
+                tags: [],
+                id: 'test-1',
+                file: 'test.spec.ts',
+                line: 5,
+                column: 3,
+                tests: [
+                  {
+                    timeout: 30000,
+                    expectedStatus: 'skipped',
+                    status: 'skipped',
+                    results: [
+                      {
+                        workerIndex: 0,
+                        status: 'skipped',
+                        duration: 0,
+                        retry: 0,
+                        startTime: '2024-01-01T00:00:00.000Z',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        stats: {
+          startTime: '2024-01-01T00:00:00.000Z',
+          duration: 1000,
+        },
+      };
+
+      const testFile = join(testDataDir, 'playwright-skipped.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(playwrightReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
+    });
+
     it('should convert basic playwright report to unified report', async () => {
       const playwrightReport = {
         config: {

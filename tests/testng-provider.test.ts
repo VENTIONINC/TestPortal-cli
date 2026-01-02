@@ -125,6 +125,29 @@ describe('TestNGProvider', () => {
       ).toBe('Expected true but found false');
     });
 
+    it('should handle skipped tests', async () => {
+      const testngReport = `
+        <testng-results>
+          <suite name="Suite">
+            <test name="Test">
+              <class name="com.example.TestClass">
+                <test-method status="SKIP" signature="skipTest()" name="skipTest" duration-ms="0" started-at="2023-01-01T00:00:00Z" finished-at="2023-01-01T00:00:01Z"/>
+              </class>
+            </test>
+          </suite>
+        </testng-results>
+      `;
+
+      const testFile = join(testDataDir, 'testng-skip.xml');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, testngReport, 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
+    });
+
     it('should ignore config methods', async () => {
       const testngReport = `
         <testng-results>

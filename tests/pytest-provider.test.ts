@@ -8,7 +8,11 @@ describe('PytestProvider', () => {
 
   beforeEach(() => {
     provider = new PytestProvider();
-    testDataDir = join(__dirname, 'test-data', `pytest-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `pytest-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {
@@ -122,6 +126,40 @@ describe('PytestProvider', () => {
   });
 
   describe('convert', () => {
+    it('should handle skipped tests', async () => {
+      const pytestReport = {
+        created: 1700000000,
+        duration: 1.5,
+        exitcode: 0,
+        root: '/path/to/project',
+        summary: {
+          total: 1,
+          skipped: 1,
+          collected: 1,
+        },
+        tests: [
+          {
+            nodeid: 'tests/test_skip.py::test_skip',
+            lineno: 5,
+            outcome: 'skipped',
+            call: {
+              outcome: 'skipped',
+              duration: 0.1,
+            },
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'pytest-skipped.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(pytestReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.skipped).toBe(1);
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('skipped');
+    });
+
     it('should convert basic pytest report with passing tests', async () => {
       const pytestReport = {
         created: 1700000000,
@@ -233,13 +271,15 @@ describe('PytestProvider', () => {
       expect(unifiedReport.stats.passed).toBe(1);
       expect(unifiedReport.stats.failed).toBe(1);
       expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.message).toBe(
-        'AssertionError: Expected 200, got 404'
-      );
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.stack).toContain(
-        'test_api.py'
-      );
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors
+      ).toBeDefined();
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.message
+      ).toBe('AssertionError: Expected 200, got 404');
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.stack
+      ).toContain('test_api.py');
     });
 
     it('should map error outcome to failed status', async () => {
@@ -275,7 +315,9 @@ describe('PytestProvider', () => {
 
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
       expect(unifiedReport.stats.failed).toBe(1);
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors
+      ).toBeDefined();
     });
 
     it('should handle skipped tests', async () => {
@@ -431,10 +473,12 @@ describe('PytestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toContain(
-        'Setup failed'
-      );
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors
+      ).toBeDefined();
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
+      ).toContain('Setup failed');
     });
 
     it('should handle teardown failures', async () => {
@@ -485,10 +529,12 @@ describe('PytestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toContain(
-        'Teardown failed'
-      );
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors
+      ).toBeDefined();
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
+      ).toContain('Teardown failed');
     });
 
     it('should handle multiple test files with proper suite grouping', async () => {
@@ -591,9 +637,15 @@ describe('PytestProvider', () => {
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests).toHaveLength(3);
-      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('test_format[param1]');
-      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe('test_format[param2]');
-      expect(unifiedReport.suites[0]?.tests[2]?.name).toBe('test_format[param3]');
+      expect(unifiedReport.suites[0]?.tests[0]?.name).toBe(
+        'test_format[param1]'
+      );
+      expect(unifiedReport.suites[0]?.tests[1]?.name).toBe(
+        'test_format[param2]'
+      );
+      expect(unifiedReport.suites[0]?.tests[2]?.name).toBe(
+        'test_format[param3]'
+      );
     });
 
     it('should calculate test duration from all stages', async () => {
@@ -758,10 +810,12 @@ describe('PytestProvider', () => {
 
       const unifiedReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toContain(
-        'Segmentation fault'
-      );
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors
+      ).toBeDefined();
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
+      ).toContain('Segmentation fault');
     });
 
     it('should preserve test keywords as tags', async () => {

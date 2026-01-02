@@ -183,7 +183,7 @@ export class JestProvider implements BaseProvider {
       case 'failed':
         return 'failed';
       case 'pending':
-        return 'pending';
+        return 'skipped';
       case 'todo':
         return 'todo';
       default:
@@ -220,8 +220,8 @@ export class JestProvider implements BaseProvider {
       total: jestReport.numTotalTests,
       passed: jestReport.numPassedTests,
       failed: jestReport.numFailedTests,
-      skipped: 0, // Jest doesn't have a direct "skipped" concept
-      pending: jestReport.numPendingTests,
+      skipped: jestReport.numPendingTests, // Jest uses pending for skipped tests
+      pending: 0,
       todo: jestReport.numTodoTests,
       timeout: 0, // Jest reports timeouts as failures
       interrupted: jestReport.wasInterrupted ? 1 : 0,
