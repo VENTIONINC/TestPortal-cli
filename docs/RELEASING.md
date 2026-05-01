@@ -1,55 +1,51 @@
-# Releasing
+# Release Guide
 
-The release process for this project is automated via GitHub Actions triggered by tags.
+This document describes the recommended release flow for the Test Portal CLI.
 
-## Release Flow
+## Recommended Flow
 
-1. **Merge develop to main**: Ensure all changes are in the `main` branch.
+1. Update the version in `package.json` on a feature or release branch.
+2. Update `package-lock.json` if needed.
+3. Open a pull request targeting `main`.
+4. Make sure the pull request passes the required checks for this repository.
+5. Merge the pull request into `main`.
+6. Pull the latest `main` locally and confirm you are on the exact merged commit.
+7. Create a Git tag for the new version on that `main` commit.
+8. Push the tag to GitHub.
+9. Create a GitHub Release from that tag.
 
-   ```bash
-   git checkout main
-   git merge develop
-   ```
+## Example
 
-2. **Bump version**: Update `version` in `package.json`.
+If the new version is `1.1.2`:
 
-   ```bash
-   # Example: change "version": "1.1.0" to "version": "1.1.1"
-   ```
+```bash
+git checkout main
+git pull origin main
+git tag v1.1.2
+git push origin v1.1.2
+```
 
-3. **Update lockfile**: Run `npm install` to sync `package-lock.json`.
+Then create a new GitHub Release for `v1.1.2` in the repository UI.
 
-   ```bash
-   npm install
-   ```
+## Why This Flow Works
 
-4. **Commit and Tag**:
+This is a normal and widely used workflow.
 
-   ```bash
-   git add package.json package-lock.json
-   git commit -m "chore: bump version to X.Y.Z"
-   git tag vX.Y.Z
-   ```
+It follows a few good release practices:
 
-5. **Push**:
+- The version change is reviewed in a pull request before release.
+- The release tag is created from the actual commit that reached `main`.
+- GitHub Releases are tied to immutable Git tags instead of branch state.
 
-   ```bash
-   git push origin main --tags
-   ```
+## Best Practice Notes
 
-6. **Sync develop**: Merge `main` back into `develop` to keep them in sync.
-   ```bash
-   git checkout develop
-   git merge main
-   git push origin develop
-   ```
+- Prefer tagging the merge commit on `main`, not the PR branch commit before merge. This ensures the tag points to the exact code that was released.
+- Use a consistent tag format. `vX.Y.Z` is the most common choice and works well with release tooling.
+- Keep `package.json` version and Git tag aligned. Example: `package.json` = `1.1.2`, tag = `v1.1.2`.
+- If release notes matter to your team or users, add a short summary of changes in the GitHub Release.
 
-## Automation
+## Package Publishing
 
-Once a tag matching `v*` is pushed to the repository, the [Publish CLI to GitHub Packages](.github/workflows/publish.yml) workflow will:
+This repository publishes the CLI package through GitHub Actions after a matching Git tag is pushed.
 
-1. Checkout the code.
-2. Set up Node.js.
-3. Install dependencies.
-4. Build the project.
-5. Publish the package to GitHub Packages.
+Once a tag matching `v*` is pushed to the repository, the publish workflow builds the project and publishes the package to GitHub Packages.
