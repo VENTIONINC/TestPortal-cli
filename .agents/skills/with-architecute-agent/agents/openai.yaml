@@ -1,4 +1,0 @@
-interface:
-  display_name: "With Architecture Agent"
-  short_description: "Route delegation to architecture-agent"
-  default_prompt: "Use $with-architecute-agent to delegate architecture-focused work in this repo."
