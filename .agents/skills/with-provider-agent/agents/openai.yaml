@@ -1,0 +1,4 @@
+interface:
+  display_name: "With Provider Agent"
+  short_description: "Route delegation to provider-agent"
+  default_prompt: "Use $with-provider-agent to delegate provider implementation work in this repo."

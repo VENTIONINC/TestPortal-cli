@@ -1,0 +1,4 @@
+interface:
+  display_name: "With Meta Agent"
+  short_description: "Route delegation to meta-agent"
+  default_prompt: "Use $with-meta-agent to delegate skill and agent workflow tasks in this repo."

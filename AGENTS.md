@@ -12,9 +12,21 @@ into unified format.
 
 - Source files are in `src/` and tests are in `tests/`.
 - Use `npm run build` to compile TypeScript to `dist/`.
-- Keep code style consistent by running `npm run format` and `npm run lint` before
-  committing.
-- Run the test suite with `npm test` and ensure it passes.
+- Prefer the existing path aliases such as `@/core/*`, `@/providers/*`,
+  `@/types/*`, and `@/utils/*` where they improve clarity.
+- Keep strict TypeScript compatibility. Avoid introducing new `any` usage unless
+  there is a clear reason, but note that some existing code still uses `any`.
+- Types are often defined in `src/types/`, but some helper and implementation
+  types are intentionally colocated with the code that uses them.
+- Organize imports consistently with the surrounding file style rather than
+  assuming a globally enforced import-order rule.
+
+## Verification
+
+- Before committing, run `npm run format`, `npm run typecheck`,
+  `npm run lint`, `npm test`, and `npm run build`.
+- Treat `npm test` and `npm run typecheck` as required validation steps, not
+  optional extras.
 
 ## Contributing
 
