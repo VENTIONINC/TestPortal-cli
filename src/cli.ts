@@ -18,7 +18,7 @@ async function main(): Promise<void> {
     .description(
       'Convert test reports from popular frameworks to unified format'
     )
-    .version('1.0.0-alpha.1');
+    .version('1.1.2');
 
   program
     .requiredOption('-i, --input <path>', 'Path to the source report file')
