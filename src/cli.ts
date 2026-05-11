@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// Copyright 2026 Vention
+// SPDX-License-Identifier: Apache-2.0
+
+
+// Copyright 2026 Vention
+// SPDX-License-Identifier: Apache-2.0
 
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig();

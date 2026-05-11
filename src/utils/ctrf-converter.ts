@@ -1,3 +1,6 @@
+// Copyright 2026 Vention
+// SPDX-License-Identifier: Apache-2.0
+
 import { UnifiedReport } from '@/types/unified-report';
 import { CTRFReport, CTRFTest, TestStatus } from '@/types/ctrf';
 import { EnvironmentDetector } from '@/utils/environment';
@@ -65,8 +68,7 @@ export async function convertUnifiedToCTRF(
         failed: unified.stats.failed,
         pending: (unified.stats.pending || 0) + (unified.stats.todo || 0),
         skipped: unified.stats.skipped,
-        other:
-          (unified.stats.timeout || 0) + (unified.stats.interrupted || 0),
+        other: (unified.stats.timeout || 0) + (unified.stats.interrupted || 0),
         start: new Date(unified.stats.startTime).getTime(),
         stop: unified.stats.endTime
           ? new Date(unified.stats.endTime).getTime()
