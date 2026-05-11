@@ -264,5 +264,56 @@ describe('CTRF Converter', () => {
       expect(result.results.tests[0]?.retry).toBe(1);
       expect(result.results.tests[0]?.flaky).toBe(true);
     });
+
+    it('should map timeout and interrupted statuses to CTRF other summary and tests', async () => {
+      const reportWithOtherStatuses: UnifiedReport = {
+        ...mockUnifiedReport,
+        stats: {
+          ...mockUnifiedReport.stats,
+          total: 2,
+          passed: 0,
+          failed: 0,
+          skipped: 0,
+          timeout: 1,
+          interrupted: 1,
+        },
+        suites: [
+          {
+            id: 'suite-1',
+            name: 'Other Status Suite',
+            tests: [
+              {
+                id: 'test-1',
+                name: 'timeout test',
+                fullName: 'timeout test',
+                status: 'timeout',
+                duration: 10,
+                results: [],
+              },
+              {
+                id: 'test-2',
+                name: 'interrupted test',
+                fullName: 'interrupted test',
+                status: 'interrupted',
+                duration: 20,
+                results: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = await convertUnifiedToCTRF(reportWithOtherStatuses);
+
+      expect(result.results.summary.other).toBe(2);
+      expect(result.results.tests.map(test => test.status)).toEqual([
+        'other',
+        'other',
+      ]);
+      expect(result.results.tests.map(test => test.rawStatus)).toEqual([
+        'timeout',
+        'interrupted',
+      ]);
+    });
   });
 });

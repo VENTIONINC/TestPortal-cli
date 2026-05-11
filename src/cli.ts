@@ -2,10 +2,6 @@
 // Copyright 2026 Vention
 // SPDX-License-Identifier: Apache-2.0
 
-
-// Copyright 2026 Vention
-// SPDX-License-Identifier: Apache-2.0
-
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig();
 
@@ -14,10 +10,8 @@ import { Converter } from '@/core/converter';
 import { ConvertOptions } from '@/types/providers';
 import { WebhookConfig } from '@/types/webhook';
 
-const program = new Command();
-
-async function main(): Promise<void> {
-  const converter = new Converter();
+export function createProgram(converter = new Converter()): Command {
+  const program = new Command();
 
   program
     .name('test-convert')
@@ -102,11 +96,15 @@ async function main(): Promise<void> {
       }
     });
 
-  await program.parseAsync();
+  return program;
+}
+
+export async function runCli(argv = process.argv): Promise<void> {
+  await createProgram().parseAsync(argv);
 }
 
 if (require.main === module) {
-  main().catch(error => {
+  runCli().catch(error => {
     console.error('❌ Unexpected error:', error);
     process.exit(1);
   });
