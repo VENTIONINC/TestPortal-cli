@@ -1,7 +1,7 @@
 # 🧪 Test Report Converter
 
 [![npm version](https://img.shields.io/npm/v/@vention-test-portal/test-portal-integration-cli)](https://www.npmjs.com/package/@vention-test-portal/test-portal-integration-cli)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests](https://github.com/Vention-Test-Portal/test-portal-integration-cli/workflows/Tests/badge.svg)](https://github.com/Vention-Test-Portal/test-portal-integration-cli/actions)
 
 A powerful CLI tool and programmatic library for converting test reports from popular testing frameworks to unified format. Supports both local file output and remote webhook delivery with comprehensive retry logic and authentication.
@@ -470,9 +470,11 @@ For information on how to release new versions, see [docs/RELEASING.md](docs/REL
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
+Use `npm run new:file -- <path>` for new supported source files, and `npm run headers:add` to backfill the Apache 2.0 header across supported files in `src` and `tests`.
+
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for the full text.
 
 ## 🔗 Links
 

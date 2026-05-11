@@ -12,6 +12,8 @@ into unified format.
 
 - Source files are in `src/` and tests are in `tests/`.
 - Use `npm run build` to compile TypeScript to `dist/`.
+- Use `npm run new:file -- <path>` when creating a new supported source file so the standard Apache 2.0 header is added automatically.
+- Use `npm run headers:add` to backfill the Apache 2.0 header across supported files in `src` and `tests`.
 - Prefer the existing path aliases such as `@/core/*`, `@/providers/*`,
   `@/types/*`, and `@/utils/*` where they improve clarity.
 - Keep strict TypeScript compatibility. Avoid introducing new `any` usage unless
@@ -20,6 +22,9 @@ into unified format.
   types are intentionally colocated with the code that uses them.
 - Organize imports consistently with the surrounding file style rather than
   assuming a globally enforced import-order rule.
+- This repository is licensed under Apache 2.0. Supported source files in `src` and `tests` should carry:
+  - `// Copyright 2026 Vention`
+  - `// SPDX-License-Identifier: Apache-2.0`
 
 ## Verification
 

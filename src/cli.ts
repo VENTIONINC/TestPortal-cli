@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// Copyright 2026 Vention
+// SPDX-License-Identifier: Apache-2.0
+
+
+// Copyright 2026 Vention
+// SPDX-License-Identifier: Apache-2.0
 
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig();
@@ -18,7 +24,7 @@ async function main(): Promise<void> {
     .description(
       'Convert test reports from popular frameworks to unified format'
     )
-    .version('1.0.0-alpha.1');
+    .version('1.1.2');
 
   program
     .requiredOption('-i, --input <path>', 'Path to the source report file')
