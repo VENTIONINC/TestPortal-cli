@@ -1,3 +1,6 @@
+// Copyright 2026 VENSOLUTIONSGROUP LTD
+// SPDX-License-Identifier: Apache-2.0
+
 import { VitestProvider } from '@/providers/vitest';
 import { promises as fs } from 'fs';
 import { join } from 'path';

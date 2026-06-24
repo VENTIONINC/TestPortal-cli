@@ -27,6 +27,8 @@ This is test-report-ctrfer, a TypeScript CLI tool and library that converts test
 - `npm run typecheck` - Type checking without emitting files
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check formatting without fixing
+- `npm run headers:add` - Backfill the standard Apache 2.0 source header across `src` and `tests`
+- `npm run new:file -- <path>` - Create a supported source file with the standard header
 
 **Releasing:**
 
@@ -90,7 +92,7 @@ Always use these aliases for imports within the codebase.
 
 ## Adding New Test Framework Providers
 
-1. Create provider class in `src/providers/` implementing `BaseProvider`
+1. Create provider class in `src/providers/` implementing `BaseProvider` with `npm run new:file -- <path>`
 2. Add framework-specific types in `src/types/`
 3. Register provider in `ProviderRegistry.registerDefaultProviders()`
 4. Add comprehensive tests following existing patterns

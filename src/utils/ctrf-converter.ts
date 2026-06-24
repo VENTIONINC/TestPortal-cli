@@ -1,3 +1,6 @@
+// Copyright 2026 VENSOLUTIONSGROUP LTD
+// SPDX-License-Identifier: Apache-2.0
+
 import { UnifiedReport } from '@/types/unified-report';
 import { CTRFReport, CTRFTest, TestStatus } from '@/types/ctrf';
 import { EnvironmentDetector } from '@/utils/environment';

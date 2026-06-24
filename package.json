@@ -12,11 +12,14 @@
   "files": [
     "dist/**/*",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "dev": "ts-node src/cli.ts",
+    "headers:add": "node scripts/add-license-headers.js",
+    "new:file": "node scripts/new-file.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -43,7 +46,7 @@
     "url": "git+https://github.com/Vention-Test-Portal/test-portal-integration-cli.git"
   },
   "author": "iharMikailau",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=18.0.0"
   },

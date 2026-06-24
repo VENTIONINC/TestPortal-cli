@@ -1,3 +1,6 @@
+// Copyright 2026 VENSOLUTIONSGROUP LTD
+// SPDX-License-Identifier: Apache-2.0
+
 import { Converter } from '@/core/converter';
 import { ConvertOptions } from '@/types/providers';
 import { promises as fs } from 'fs';

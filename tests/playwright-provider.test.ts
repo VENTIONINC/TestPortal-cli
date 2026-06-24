@@ -1,3 +1,6 @@
+// Copyright 2026 VENSOLUTIONSGROUP LTD
+// SPDX-License-Identifier: Apache-2.0
+
 import { PlaywrightProvider } from '@/providers/playwright';
 import { promises as fs } from 'fs';
 import { join } from 'path';

@@ -34,6 +34,10 @@ into unified format.
   include accompanying tests under `tests/`.
 - Update documentation in `README.md` and `docs/` when functionality changes.
 - Do not commit generated files such as `dist/` or `node_modules/`.
+- Use `npm run new:file -- <path>` when creating a new supported source file so
+  the standard Apache 2.0 header is applied automatically.
+- Use `npm run headers:add` when you need to backfill the standard header across
+  existing supported files in `src` and `tests`.
 
 ## Commit Guidance
 
