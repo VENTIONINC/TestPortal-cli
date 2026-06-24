@@ -7,10 +7,9 @@ const LICENSE_HEADER = [
 ].join('\n');
 
 const LEGACY_LICENSE_HEADERS = [
-  [
-    '// Copyright 2026 Vention',
-    '// SPDX-License-Identifier: Apache-2.0',
-  ].join('\n'),
+  ['// Copyright 2026 Vention', '// SPDX-License-Identifier: Apache-2.0'].join(
+    '\n'
+  ),
 ];
 
 const HEADER_BY_EXTENSION = new Map([
@@ -81,7 +80,7 @@ function replaceLegacyLicenseHeader(content, header) {
 
     if (body.startsWith(normalizedLegacyHeader)) {
       return `${parts.shebang}${normalizeHeader(header)}${body.slice(
-        normalizedLegacyHeader.length,
+        normalizedLegacyHeader.length
       )}`;
     }
   }

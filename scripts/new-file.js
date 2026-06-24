@@ -22,7 +22,7 @@ const header = getHeaderForExtension(targetPath);
 if (!header) {
   const supportedExtensions = getSupportedExtensions().join(', ');
   fail(
-    `Unsupported extension '${extension || '(none)'}'. Supported extensions: ${supportedExtensions}`,
+    `Unsupported extension '${extension || '(none)'}'. Supported extensions: ${supportedExtensions}`
   );
 }
 
