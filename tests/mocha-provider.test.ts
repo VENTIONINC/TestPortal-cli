@@ -1,4 +1,4 @@
-// Copyright 2026 Vention
+// Copyright 2026 VENSOLUTIONSGROUP LTD
 // SPDX-License-Identifier: Apache-2.0
 
 import { MochaProvider } from '@/providers/mocha';
@@ -760,6 +760,54 @@ describe('MochaProvider', () => {
       const failedTest = unifiedReport.suites[0]?.tests[0];
       expect(failedTest?.status).toBe('failed');
       expect(failedTest?.results[0]?.errors).toBeUndefined();
+    });
+
+    it('should infer failed and timeout statuses from error fallback', async () => {
+      const mochaReport = {
+        stats: {
+          suites: 1,
+          tests: 2,
+          passes: 0,
+          pending: 0,
+          failures: 2,
+          duration: 1000,
+        },
+        tests: [
+          {
+            title: 'should fail from err',
+            fullTitle: 'Fallback should fail from err',
+            file: '/project/test/fallback.test.js',
+            duration: 100,
+            err: {
+              message: 'plain failure',
+              stack: 'Error: plain failure',
+            },
+          },
+          {
+            title: 'should timeout from err',
+            fullTitle: 'Fallback should timeout from err',
+            file: '/project/test/fallback.test.js',
+            duration: 900,
+            timedOut: true,
+            err: {
+              message: 'timeout failure',
+              stack: 'Error: timeout failure',
+            },
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'mocha-report-fallback.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(mochaReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
+      expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('timeout');
+      expect(unifiedReport.stats.timeout).toBe(1);
+      expect(unifiedReport.stats.startTime).toEqual(expect.any(String));
+      expect(unifiedReport.stats.endTime).toEqual(expect.any(String));
     });
   });
 });

@@ -1,4 +1,4 @@
-// Copyright 2026 Vention
+// Copyright 2026 VENSOLUTIONSGROUP LTD
 // SPDX-License-Identifier: Apache-2.0
 
 import { promises as fs } from 'fs';
@@ -188,12 +188,11 @@ export class MochaProvider implements BaseProvider {
   ): UnifiedTestStats {
     const allTests = suites.flatMap(suite => suite.tests);
 
-    // Use Mocha's statistics if available, otherwise calculate from tests
-    const total = mochaReport.stats.tests || allTests.length;
-    const passed = mochaReport.stats.passes || 0;
-    const failed = mochaReport.stats.failures || 0;
+    const total = allTests.length;
+    const passed = allTests.filter(t => t.status === 'passed').length;
+    const failed = allTests.filter(t => t.status === 'failed').length;
     const pending = 0;
-    const skipped = mochaReport.stats.skipped || mochaReport.stats.pending || 0;
+    const skipped = allTests.filter(t => t.status === 'skipped').length;
 
     // Calculate duration
     const duration = mochaReport.stats.duration || 0;

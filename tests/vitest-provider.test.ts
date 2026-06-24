@@ -1,4 +1,4 @@
-// Copyright 2026 Vention
+// Copyright 2026 VENSOLUTIONSGROUP LTD
 // SPDX-License-Identifier: Apache-2.0
 
 import { VitestProvider } from '@/providers/vitest';
@@ -478,6 +478,88 @@ describe('VitestProvider', () => {
       const ctrfReport = await convertUnifiedToCTRF(unifiedReport);
 
       expect(ctrfReport.results.tool.name).toBe('vitest');
+    });
+
+    it('should map todo tests and use fallback error message extraction', async () => {
+      const vitestReport = {
+        numTotalTestSuites: 1,
+        numPassedTestSuites: 0,
+        numFailedTestSuites: 1,
+        numPendingTestSuites: 0,
+        numTotalTests: 2,
+        numPassedTests: 0,
+        numFailedTests: 1,
+        numPendingTests: 0,
+        numTodoTests: 1,
+        snapshot: {
+          added: 0,
+          failure: false,
+          filesAdded: 0,
+          filesRemoved: 0,
+          filesRemovedList: [],
+          filesUnmatched: 0,
+          filesUpdated: 0,
+          matched: 0,
+          total: 0,
+          unchecked: 0,
+          uncheckedKeysByFile: [],
+          unmatched: 0,
+          updated: 0,
+          didUpdate: false,
+        },
+        startTime: 1761646529949,
+        success: false,
+        testResults: [
+          {
+            assertionResults: [
+              {
+                ancestorTitles: [],
+                fullName: 'todo test',
+                status: 'todo',
+                title: 'todo test',
+                duration: 0,
+                failureMessages: [],
+                meta: {},
+              },
+              {
+                ancestorTitles: [],
+                fullName: 'fails without expected wording',
+                status: 'failed',
+                title: 'fails without expected wording',
+                duration: 5,
+                failureMessages: [
+                  '\nCustom failure\n    at /project/src/example.test.ts:14:29',
+                ],
+                meta: {},
+              },
+            ],
+            startTime: 1761646530086,
+            endTime: 1761646530091,
+            status: 'failed',
+            message: '',
+            name: '/project/src/example.test.ts',
+          },
+        ],
+      };
+
+      const testFile = join(testDataDir, 'vitest-todo-fallback.json');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, JSON.stringify(vitestReport), 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('todo');
+      expect(unifiedReport.stats.todo).toBe(1);
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]
+      ).toMatchObject({
+        message: 'Custom failure',
+        location: {
+          file: '/project/src/example.test.ts',
+          line: 14,
+          column: 29,
+        },
+      });
     });
   });
 });

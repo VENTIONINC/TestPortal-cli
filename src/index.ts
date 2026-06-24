@@ -1,4 +1,4 @@
-// Copyright 2026 Vention
+// Copyright 2026 VENSOLUTIONSGROUP LTD
 // SPDX-License-Identifier: Apache-2.0
 
 import { Converter } from '@/core/converter';
@@ -14,12 +14,13 @@ export async function convert(options: {
   input: string;
   provider: string;
   output?: string;
+  stdout?: boolean;
   webhook?: WebhookConfig;
 }): Promise<UnifiedReport> {
   const converter = new Converter();
 
-  if (options.webhook) {
-    await converter.convertAndSave(options as ConvertOptions);
+  if (options.output || options.stdout || options.webhook) {
+    return await converter.convertAndSave(options as ConvertOptions);
   }
 
   return await converter.convert(options);
