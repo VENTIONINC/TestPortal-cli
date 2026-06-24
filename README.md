@@ -470,11 +470,16 @@ For information on how to release new versions, see [docs/RELEASING.md](docs/REL
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-Use `npm run new:file -- <path>` for new supported source files, and `npm run headers:add` to backfill the Apache 2.0 header across supported files in `src` and `tests`.
+Use `npm run new:file -- <path>` when creating a new supported source file so
+the standard Apache 2.0 header is applied automatically.
+
+To backfill the standard Apache 2.0 header across existing supported files in
+`src` and `tests`, run `npm run headers:add`.
 
 ## 📄 License
 
-This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for the full text.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE)
+for the full text and [NOTICE](NOTICE) for the project copyright notice.
 
 ## 🔗 Links
 

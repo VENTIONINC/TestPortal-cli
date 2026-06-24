@@ -1,26 +1,33 @@
-const fs = require("node:fs");
-const path = require("node:path");
+const fs = require('node:fs');
+const path = require('node:path');
 
 const LICENSE_HEADER = [
-  "// Copyright 2026 Vention",
-  "// SPDX-License-Identifier: Apache-2.0",
-].join("\n");
+  '// Copyright 2026 VENSOLUTIONSGROUP LTD',
+  '// SPDX-License-Identifier: Apache-2.0',
+].join('\n');
+
+const LEGACY_LICENSE_HEADERS = [
+  [
+    '// Copyright 2026 Vention',
+    '// SPDX-License-Identifier: Apache-2.0',
+  ].join('\n'),
+];
 
 const HEADER_BY_EXTENSION = new Map([
-  [".ts", LICENSE_HEADER],
-  [".tsx", LICENSE_HEADER],
-  [".js", LICENSE_HEADER],
-  [".jsx", LICENSE_HEADER],
-  [".mjs", LICENSE_HEADER],
-  [".cjs", LICENSE_HEADER],
+  ['.ts', LICENSE_HEADER],
+  ['.tsx', LICENSE_HEADER],
+  ['.js', LICENSE_HEADER],
+  ['.jsx', LICENSE_HEADER],
+  ['.mjs', LICENSE_HEADER],
+  ['.cjs', LICENSE_HEADER],
 ]);
 
 const DEFAULT_IGNORED_DIRECTORIES = new Set([
-  ".git",
-  "node_modules",
-  "dist",
-  "build",
-  "coverage",
+  '.git',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
 ]);
 
 function getSupportedExtensions() {
@@ -36,43 +43,55 @@ function normalizeHeader(header) {
 }
 
 function splitShebang(content) {
-  if (!content.startsWith("#!")) {
-    return { shebang: "", rest: content };
+  if (!content.startsWith('#!')) {
+    return { shebang: '', body: content };
   }
 
-  const newlineIndex = content.indexOf("\n");
-  if (newlineIndex === -1) {
-    return { shebang: content, rest: "" };
+  const lineEndIndex = content.indexOf('\n');
+
+  if (lineEndIndex === -1) {
+    return { shebang: `${content}\n`, body: '' };
   }
 
   return {
-    shebang: `${content.slice(0, newlineIndex)}\n`,
-    rest: content.slice(newlineIndex + 1),
+    shebang: content.slice(0, lineEndIndex + 1),
+    body: content.slice(lineEndIndex + 1),
   };
 }
 
-function hasLicenseHeader(content, header) {
-  const normalizedHeader = normalizeHeader(header);
-  if (content.startsWith(normalizedHeader)) {
-    return true;
+function getHeaderBody({ shebang, body }) {
+  if (shebang && body.startsWith('\n')) {
+    return body.slice(1);
   }
 
-  const { rest } = splitShebang(content);
-  return rest.startsWith(normalizedHeader);
+  return body;
 }
 
-function applyHeaderToContent(content, header) {
-  const normalizedHeader = normalizeHeader(header);
-  if (hasLicenseHeader(content, header)) {
-    return content;
+function hasLicenseHeader(content, header) {
+  const parts = splitShebang(content);
+  return getHeaderBody(parts).startsWith(normalizeHeader(header));
+}
+
+function replaceLegacyLicenseHeader(content, header) {
+  const parts = splitShebang(content);
+  const body = getHeaderBody(parts);
+
+  for (const legacyHeader of LEGACY_LICENSE_HEADERS) {
+    const normalizedLegacyHeader = normalizeHeader(legacyHeader);
+
+    if (body.startsWith(normalizedLegacyHeader)) {
+      return `${parts.shebang}${normalizeHeader(header)}${body.slice(
+        normalizedLegacyHeader.length,
+      )}`;
+    }
   }
 
-  const { shebang, rest } = splitShebang(content);
-  if (!shebang) {
-    return `${normalizedHeader}${content}`;
-  }
+  return null;
+}
 
-  return `${shebang}${normalizedHeader}${rest}`;
+function addLicenseHeader(content, header) {
+  const parts = splitShebang(content);
+  return `${parts.shebang}${normalizeHeader(header)}${getHeaderBody(parts)}`;
 }
 
 function fail(message) {
@@ -86,13 +105,14 @@ function ensureParentDirectory(filePath) {
 
 module.exports = {
   DEFAULT_IGNORED_DIRECTORIES,
-  HEADER_BY_EXTENSION,
   LICENSE_HEADER,
-  applyHeaderToContent,
+  LEGACY_LICENSE_HEADERS,
+  addLicenseHeader,
   ensureParentDirectory,
   fail,
   getHeaderForExtension,
   getSupportedExtensions,
   hasLicenseHeader,
   normalizeHeader,
+  replaceLegacyLicenseHeader,
 };

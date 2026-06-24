@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Copyright 2026 Vention
+// Copyright 2026 VENSOLUTIONSGROUP LTD
 // SPDX-License-Identifier: Apache-2.0
 
 import { config as dotenvConfig } from 'dotenv';

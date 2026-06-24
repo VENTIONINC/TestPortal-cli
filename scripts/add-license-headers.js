@@ -1,15 +1,16 @@
-const fs = require("node:fs");
-const path = require("node:path");
+const fs = require('node:fs');
+const path = require('node:path');
 
 const {
   DEFAULT_IGNORED_DIRECTORIES,
-  applyHeaderToContent,
+  addLicenseHeader,
   getHeaderForExtension,
   getSupportedExtensions,
   hasLicenseHeader,
-} = require("./license-header-utils.js");
+  replaceLegacyLicenseHeader,
+} = require('./license-header-utils');
 
-const TARGET_DIRECTORIES = ["src", "tests"];
+const TARGET_DIRECTORIES = ['src', 'tests'];
 
 function walkDirectory(directoryPath, collectedPaths) {
   const entries = fs.readdirSync(directoryPath, { withFileTypes: true });
@@ -55,14 +56,26 @@ targetFiles.forEach((targetFile) => {
     return;
   }
 
-  const currentContent = fs.readFileSync(targetFile, "utf8");
+  const currentContent = fs.readFileSync(targetFile, 'utf8');
 
   if (hasLicenseHeader(currentContent, header)) {
     skippedCount += 1;
     return;
   }
 
-  fs.writeFileSync(targetFile, applyHeaderToContent(currentContent, header), "utf8");
+  const normalizedLegacyContent = replaceLegacyLicenseHeader(
+    currentContent,
+    header,
+  );
+
+  if (normalizedLegacyContent) {
+    fs.writeFileSync(targetFile, normalizedLegacyContent, 'utf8');
+    updatedCount += 1;
+    console.log(`Updated ${path.relative(rootDirectory, targetFile)}`);
+    return;
+  }
+
+  fs.writeFileSync(targetFile, addLicenseHeader(currentContent, header), 'utf8');
   updatedCount += 1;
   console.log(`Updated ${path.relative(rootDirectory, targetFile)}`);
 });
@@ -70,5 +83,5 @@ targetFiles.forEach((targetFile) => {
 console.log(
   `Processed ${targetFiles.length} supported files. Added headers to ${updatedCount}; skipped ${skippedCount}.`,
 );
-console.log(`Supported extensions: ${getSupportedExtensions().join(", ")}`);
-console.log(`Scoped directories: ${TARGET_DIRECTORIES.join(", ")}`);
+console.log(`Supported extensions: ${getSupportedExtensions().join(', ')}`);
+console.log(`Scoped directories: ${TARGET_DIRECTORIES.join(', ')}`);
