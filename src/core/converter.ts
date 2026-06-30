@@ -1,3 +1,6 @@
+// Copyright 2026 VENSOLUTIONSGROUP LTD
+// SPDX-License-Identifier: Apache-2.0
+
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 import { UnifiedReport } from '@/types/unified-report';
@@ -35,7 +38,7 @@ export class Converter {
     return unifiedReport;
   }
 
-  async convertAndSave(options: ConvertOptions): Promise<void> {
+  async convertAndSave(options: ConvertOptions): Promise<UnifiedReport> {
     const unifiedReport = await this.convert(options);
 
     const webhookPromise = options.webhook
@@ -44,16 +47,22 @@ export class Converter {
 
     const outputPromise = this.handleOutput(unifiedReport, options);
 
-    const [webhookResult] = await Promise.allSettled([
+    const [webhookResult, outputResult] = await Promise.allSettled([
       webhookPromise,
       outputPromise,
     ]);
+
+    if (outputResult.status === 'rejected') {
+      throw outputResult.reason;
+    }
 
     if (webhookResult.status === 'rejected') {
       console.error('❌ Webhook failed:', webhookResult.reason.message);
     } else if (options.webhook) {
       console.log('✅ Successfully sent to webhook:', options.webhook.url);
     }
+
+    return unifiedReport;
   }
 
   private async handleOutput(

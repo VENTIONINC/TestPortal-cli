@@ -1,3 +1,6 @@
+// Copyright 2026 VENSOLUTIONSGROUP LTD
+// SPDX-License-Identifier: Apache-2.0
+
 import { HttpClient } from '@/utils/http-client';
 import { UnifiedReport } from '@/types/unified-report';
 import { WebhookConfig } from '@/types/webhook';
