@@ -56,7 +56,7 @@ export async function convertUnifiedToCTRF(
   const environment = await EnvironmentDetector.detect();
 
   // Build CTRF report
-  const ctrfReport: CTRFReport = {
+  return {
     results: {
       tool: {
         name: unified.framework,
@@ -78,8 +78,6 @@ export async function convertUnifiedToCTRF(
       environment,
     },
   };
-
-  return ctrfReport;
 }
 
 /**

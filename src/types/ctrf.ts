@@ -60,6 +60,7 @@ export const CTRFEnvironmentSchema = z.object({
   repositoryUrl: z.string().optional(),
   branchName: z.string().optional(),
   testEnvironment: z.string().optional(),
+  executionType: z.string().optional(),
   extra: z.record(z.unknown()).optional(),
 });
 

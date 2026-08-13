@@ -315,5 +315,69 @@ describe('CTRF Converter', () => {
         'interrupted',
       ]);
     });
+
+    it('should set environment.executionType from EXECUTION_TYPE', async () => {
+      const originalEnv = { ...process.env };
+      process.env.EXECUTION_TYPE = 'release';
+
+      const result = await convertUnifiedToCTRF(mockUnifiedReport);
+
+      expect(result.results.environment?.executionType).toBe('release');
+      expect(result.results.extra).toBeUndefined();
+
+      process.env = originalEnv;
+    });
+
+    it('should trim EXECUTION_TYPE value', async () => {
+      const originalEnv = { ...process.env };
+      process.env.EXECUTION_TYPE = '  release  ';
+
+      const result = await convertUnifiedToCTRF(mockUnifiedReport);
+
+      expect(result.results.environment?.executionType).toBe('release');
+
+      process.env = originalEnv;
+    });
+
+    it('should omit executionType when EXECUTION_TYPE is empty', async () => {
+      const originalEnv = { ...process.env };
+      process.env.EXECUTION_TYPE = '   ';
+
+      const result = await convertUnifiedToCTRF(mockUnifiedReport);
+
+      expect(result.results.environment?.executionType).toBeUndefined();
+
+      process.env = originalEnv;
+    });
+
+    it('should include EXECUTION_TYPE and TEST_ENVIRONMENT with CI metadata', async () => {
+      const originalEnv = { ...process.env };
+
+      delete process.env.GITLAB_CI;
+      delete process.env.JENKINS_URL;
+      delete process.env.AZURE_HTTP_USER_AGENT;
+      delete process.env.GIT_REPOSITORY_NAME;
+      delete process.env.GIT_REPOSITORY_URL;
+      delete process.env.GIT_BRANCH_NAME;
+
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.GITHUB_WORKFLOW = 'e2e';
+      process.env.GITHUB_RUN_NUMBER = '42';
+      process.env.GITHUB_RUN_ID = '100';
+      process.env.GITHUB_REPOSITORY = 'owner/repo';
+      process.env.GITHUB_SERVER_URL = 'https://github.com';
+      process.env.GITHUB_REF_NAME = 'main';
+      process.env.EXECUTION_TYPE = 'release';
+      process.env.TEST_ENVIRONMENT = 'develop';
+
+      const result = await convertUnifiedToCTRF(mockUnifiedReport);
+
+      expect(result.results.environment?.executionType).toBe('release');
+      expect(result.results.environment?.testEnvironment).toBe('develop');
+      expect(result.results.environment?.buildName).toBe('e2e');
+      expect(result.results.environment?.buildNumber).toBe('42');
+
+      process.env = originalEnv;
+    });
   });
 });
