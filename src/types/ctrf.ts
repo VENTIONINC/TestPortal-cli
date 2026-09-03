@@ -33,6 +33,52 @@ export const CTRFSummarySchema = z.object({
 
 export type CTRFSummary = z.infer<typeof CTRFSummarySchema>;
 
+export const CTRFTestPortalErrorSchema = z.object({
+  index: z.number().int().nonnegative(),
+  message: z.string().optional(),
+  stack: z.string().optional(),
+  location: z
+    .object({
+      file: z.string(),
+      line: z.number().int(),
+      column: z.number().int().optional(),
+    })
+    .optional(),
+  rawLogs: z.array(z.string()).optional(),
+  sourceSnippet: z
+    .object({
+      path: z.string(),
+      text: z.string(),
+      startLine: z.number().int(),
+      failingLine: z.number().int(),
+    })
+    .optional(),
+  generatedTestCase: z.string().optional(),
+});
+
+export const CTRFTestPortalExtraSchema = z.object({
+  version: z.literal(1),
+  errors: z.array(CTRFTestPortalErrorSchema),
+});
+
+export const CTRFRetryAttemptSchema = z.object({
+  attempt: z.number().int().positive(),
+  status: TestStatusSchema,
+  duration: z.number().int().nonnegative().optional(),
+  message: z.string().optional(),
+  trace: z.string().optional(),
+  line: z.number().int().optional(),
+  snippet: z.string().optional(),
+  stdout: z.array(z.string()).optional(),
+  stderr: z.array(z.string()).optional(),
+  start: z.number().int().optional(),
+  stop: z.number().int().optional(),
+  extra: z
+    .object({ testPortal: CTRFTestPortalExtraSchema })
+    .passthrough()
+    .optional(),
+});
+
 export const CTRFTestSchema = z.object({
   name: z.string(),
   status: TestStatusSchema,
@@ -42,10 +88,19 @@ export const CTRFTestSchema = z.object({
   rawStatus: z.string().optional(),
   type: z.string().optional(),
   filePath: z.string().optional(),
-  retry: z.number().optional(),
+  retries: z.number().int().nonnegative().optional(),
+  retryAttempts: z.array(CTRFRetryAttemptSchema).optional(),
   flaky: z.boolean().optional(),
-  suite: z.string().optional(),
+  suite: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  snippet: z.string().optional(),
+  line: z.number().int().optional(),
+  stdout: z.array(z.string()).optional(),
+  stderr: z.array(z.string()).optional(),
+  extra: z
+    .object({ testPortal: CTRFTestPortalExtraSchema })
+    .passthrough()
+    .optional(),
   meta: z.record(z.unknown()).optional(),
 });
 
@@ -77,6 +132,8 @@ export const CTRFResultsSchema = z.object({
 export type CTRFResults = z.infer<typeof CTRFResultsSchema>;
 
 export const CTRFReportSchema = z.object({
+  reportFormat: z.literal('CTRF'),
+  specVersion: z.literal('0.0.0'),
   results: CTRFResultsSchema,
 });
 

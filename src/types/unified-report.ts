@@ -24,11 +24,21 @@ export const UnifiedErrorSchema = z.object({
     .object({
       file: z.string(),
       line: z.number(),
-      column: z.number(),
+      column: z.number().optional(),
     })
     .optional(),
   diff: z.string().optional(),
   snippet: z.string().optional(),
+  rawLogs: z.array(z.string()).optional(),
+  sourceSnippet: z
+    .object({
+      path: z.string(),
+      text: z.string(),
+      startLine: z.number().int().positive(),
+      failingLine: z.number().int().positive(),
+    })
+    .optional(),
+  generatedTestCase: z.string().optional(),
 });
 
 export type UnifiedError = z.infer<typeof UnifiedErrorSchema>;

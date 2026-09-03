@@ -76,6 +76,41 @@ describe('CTRF Converter', () => {
       expect(result.results.summary.passed).toBe(1);
       expect(result.results.summary.failed).toBe(1);
       expect(result.results.tests).toHaveLength(2);
+      expect(result.reportFormat).toBe('CTRF');
+      expect(result.specVersion).toBe('0.0.0');
+    });
+
+    it('serializes ordered errors, diagnostics, and prior retry attempts without provider branching', async () => {
+      const report: UnifiedReport = {
+        ...mockUnifiedReport,
+        framework: 'other',
+        suites: [{
+          ...mockUnifiedReport.suites[0]!,
+          tests: [{
+            ...mockUnifiedReport.suites[0]!.tests[1]!,
+            results: [
+              { attemptNumber: 1, status: 'failed', duration: 10, errors: [{ message: 'first attempt' }] },
+              { attemptNumber: 2, status: 'failed', duration: 20, errors: [
+                { message: 'primary', stack: 'one', rawLogs: ['browser'], sourceSnippet: { path: 'a.ts', text: 'bad()', startLine: 4, failingLine: 4 } },
+                { message: 'secondary', stack: 'two', generatedTestCase: "test('generated', () => {});" },
+              ] },
+            ],
+          }],
+        }],
+      };
+
+      const result = await convertUnifiedToCTRF(report);
+      expect(result.results.tests[0]).toMatchObject({
+        suite: ['Test Suite'],
+        message: 'primary',
+        trace: 'one',
+        retries: 1,
+        retryAttempts: [{ attempt: 1, status: 'failed', message: 'first attempt' }],
+        extra: { testPortal: { version: 1, errors: [
+          { index: 0, rawLogs: ['browser'], sourceSnippet: { path: 'a.ts', text: 'bad()', startLine: 4, failingLine: 4 } },
+          { index: 1, generatedTestCase: "test('generated', () => {});" },
+        ] } },
+      });
     });
 
     it('should map todo status to pending in CTRF summary and tests', async () => {
@@ -222,7 +257,7 @@ describe('CTRF Converter', () => {
       const result = await convertUnifiedToCTRF(mockUnifiedReport);
 
       result.results.tests.forEach(test => {
-        expect(test.suite).toBe('Test Suite');
+        expect(test.suite).toEqual(['Test Suite']);
         expect(test.filePath).toBe('/path/to/test.ts');
       });
     });
@@ -261,7 +296,7 @@ describe('CTRF Converter', () => {
 
       const result = await convertUnifiedToCTRF(reportWithRetries);
 
-      expect(result.results.tests[0]?.retry).toBe(1);
+      expect(result.results.tests[0]?.retries).toBe(1);
       expect(result.results.tests[0]?.flaky).toBe(true);
     });
 

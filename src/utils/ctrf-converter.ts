@@ -20,7 +20,7 @@ export async function convertUnifiedToCTRF(
         name: test.fullName || test.name,
         status: mapStatusToCTRF(test.status),
         duration: test.duration || 0,
-        suite: suite.name,
+        suite: [suite.name],
         filePath: suite.file,
       };
 
@@ -36,12 +36,35 @@ export async function convertUnifiedToCTRF(
           const error = lastAttempt.errors[0];
           ctrfTest.message = error?.message;
           ctrfTest.trace = error?.stack;
+          ctrfTest.line = error?.location?.line;
+          ctrfTest.extra = buildTestPortalExtra(lastAttempt.errors);
         }
 
         // Track retry attempts
         if (test.results.length > 1) {
-          ctrfTest.retry = test.results.length - 1;
+          ctrfTest.retries = test.results.length - 1;
           ctrfTest.flaky = test.status === 'passed';
+          ctrfTest.retryAttempts = test.results.slice(0, -1).map(attempt => {
+            const primary = attempt.errors?.[0];
+            return {
+              attempt: attempt.attemptNumber,
+              status: mapStatusToCTRF(attempt.status),
+              ...(attempt.duration !== undefined
+                ? { duration: Math.round(attempt.duration) }
+                : {}),
+              ...(primary?.message ? { message: primary.message } : {}),
+              ...(primary?.stack ? { trace: primary.stack } : {}),
+              ...(primary?.location?.line !== undefined
+                ? { line: primary.location.line }
+                : {}),
+              ...(attempt.startTime
+                ? { start: new Date(attempt.startTime).getTime() }
+                : {}),
+              ...(attempt.errors?.length
+                ? { extra: buildTestPortalExtra(attempt.errors) }
+                : {}),
+            };
+          });
         }
       }
 
@@ -57,6 +80,8 @@ export async function convertUnifiedToCTRF(
 
   // Build CTRF report
   return {
+    reportFormat: 'CTRF',
+    specVersion: '0.0.0',
     results: {
       tool: {
         name: unified.framework,
@@ -78,6 +103,34 @@ export async function convertUnifiedToCTRF(
       environment,
     },
   };
+}
+
+function buildTestPortalExtra(
+  errors: NonNullable<
+    UnifiedReport['suites'][number]['tests'][number]['results'][number]['errors']
+  >
+) {
+  const enriched = errors.map((error, index) => ({
+    index,
+    message: error.message,
+    ...(error.stack ? { stack: error.stack } : {}),
+    ...(error.location ? { location: error.location } : {}),
+    ...(error.rawLogs ? { rawLogs: error.rawLogs } : {}),
+    ...(error.sourceSnippet ? { sourceSnippet: error.sourceSnippet } : {}),
+    ...(error.generatedTestCase
+      ? { generatedTestCase: error.generatedTestCase }
+      : {}),
+  }));
+  const hasEnrichment = enriched.some(
+    error =>
+      error.rawLogs ||
+      error.sourceSnippet ||
+      error.generatedTestCase ||
+      enriched.length > 1
+  );
+  return hasEnrichment
+    ? { testPortal: { version: 1 as const, errors: enriched } }
+    : undefined;
 }
 
 /**
