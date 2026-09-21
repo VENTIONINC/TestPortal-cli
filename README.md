@@ -1,493 +1,202 @@
-# 🧪 Test Report Converter
+# TestPortal CLI
 
-[![npm version](https://img.shields.io/npm/v/@vention-test-portal/test-portal-integration-cli)](https://www.npmjs.com/package/@vention-test-portal/test-portal-integration-cli)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Tests](https://github.com/Vention-Test-Portal/test-portal-integration-cli/workflows/Tests/badge.svg)](https://github.com/Vention-Test-Portal/test-portal-integration-cli/actions)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-A powerful CLI tool and programmatic library for converting test reports from popular testing frameworks to unified format. Supports both local file output and remote webhook delivery with comprehensive retry logic and authentication.
+TestPortal helps teams centralize test results, investigate failures, and track issues across projects. This repository contains its TypeScript command-line tool and Node.js library for converting test reports and delivering them to TestPortal.
 
-## ✨ Features
+## What you can do
 
-- 🔄 **Multi-framework support**: Jest, Playwright, Cypress, JUnit, Vitest, NUnit, Mocha, Pytest, TestNG
-- 📊 **CTRF format**: Common Test Report Format for consistent structure
-- 🚀 **CLI & Programmatic**: Use as command-line tool or Node.js library
-- 🌐 **Webhook delivery**: Send reports to remote endpoints with retry logic
-- 🔒 **Authentication**: Support for Bearer tokens and custom headers
-- ⚡ **Fast & reliable**: Built with TypeScript for type safety
-- 📝 **Detailed output**: Comprehensive test results with error details
+- Convert reports from nine testing frameworks and report formats.
+- Write Common Test Report Format (CTRF) JSON to a file or the console.
+- Upload CTRF reports to TestPortal or compatible custom webhooks with configurable retries and headers.
+- Include CI, execution type, and test environment metadata in reports.
+- Use the conversion library directly from Node.js.
 
-## 🚀 Installation
+## TestPortal ecosystem
 
-### Global Installation (CLI)
+| Repository                                                       | Role                                                                             |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [Frontend](https://github.com/VENTIONINC/TestPortal-client)      | Web interface for results, issues, and dashboards.                               |
+| [Backend](https://github.com/VENTIONINC/TestPortal-backend)      | REST API, MCP server, authentication, and data storage.                          |
+| [CLI](https://github.com/VENTIONINC/TestPortal-cli)              | Report conversion and delivery from local runs or CI pipelines; this repository. |
+| [Infrastructure](https://github.com/VENTIONINC/TestPortal-infra) | Infrastructure configuration for TestPortal deployments.                         |
 
-```bash
-npm install -g @vention-test-portal/test-portal-integration-cli
+```text
+Framework report → TestPortal CLI → CTRF file / console
+                                 → TestPortal backend → Web frontend
 ```
 
-### Local Installation (Library)
+## Installation
 
-```bash
-npm install @vention-test-portal/test-portal-integration-cli
+Requires Node.js 18 or later. The repository currently configures package distribution through GitHub Packages.
+
+Configure the package scope in your project's `.npmrc`:
+
+```ini
+@vention-test-portal:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
 ```
 
-## 📦 GitHub Actions Usage
+Set `NODE_AUTH_TOKEN` to a GitHub token with package read access, then install:
 
-To use this CLI in your GitHub Actions workflows to upload test reports:
+```bash
+npm install --save-dev @vention-test-portal/test-portal-integration-cli
+```
 
-### 1. Configure Permissions and Secrets
+For a Node.js application that uses the library at runtime, install without `--save-dev`. To try conversion from source, follow [Development](#development).
 
-Ensure your workflow has permission to read packages and access the repository.
+## Usage
 
-### 2. Add Workflow Step
+Both `--input` and `--type` are required. For a Playwright JSON report:
 
-Add the following step to your `.github/workflows/test.yml` (or equivalent):
+```bash
+npx test-portal-cli --input playwright-report.json --type playwright --output ctrf-report.json
+```
+
+The output file contains CTRF JSON with `results.tool`, `results.summary`, and `results.tests`. See the [CTRF structure guide](docs/CTRF_STRUCTURE_REPORT.md) and [example output](examples/ctrf-output-schema-example.json).
+
+### Upload to TestPortal
+
+Configure a project upload API key in TestPortal, then set these values in your shell or a local `.env` file:
+
+```dotenv
+TEST_PORTAL_URL=http://localhost:3001/api/v2/upload-ctrf-report-api-key
+TEST_PORTAL_API_KEY=your-project-upload-api-key
+EXECUTION_TYPE=release
+TEST_ENVIRONMENT=develop
+```
+
+```bash
+npx test-portal-cli --input playwright-report.json --type playwright
+```
+
+`TEST_PORTAL_API_KEY` is sent as the `X-API-Key` header. `EXECUTION_TYPE` and `TEST_ENVIRONMENT` populate `results.environment.executionType` and `results.environment.testEnvironment`. The test environment defaults to `ci` when a supported CI system is detected and the variable is unset.
+
+### Output and delivery behavior
+
+| Configuration                         | Behavior                                                                      |
+| ------------------------------------- | ----------------------------------------------------------------------------- |
+| `--output path`                       | Write CTRF JSON to that file.                                                 |
+| `--stdout`                            | Print CTRF JSON; takes precedence over `--output`.                            |
+| No output option or webhook           | Write next to the input with a `.unified.json` suffix; the contents are CTRF. |
+| Webhook configured, no output option  | Upload only.                                                                  |
+| Webhook plus `--output` or `--stdout` | Upload and also produce the requested output.                                 |
+
+`--webhook` overrides `TEST_PORTAL_URL`. Neither `--stdout` nor `--output` disables upload: unset `TEST_PORTAL_URL` and omit `--webhook` for local-only conversion.
+
+Webhooks receive a multipart form containing a JSON file in the `report` field. A custom endpoint must accept that format. The CLI logs webhook failures but currently does not make them a failing exit status; a successful process exit alone does not confirm delivery.
+
+### Supported providers
+
+| `--type`     | Input format                     |
+| ------------ | -------------------------------- |
+| `playwright` | Playwright JSON reporter output. |
+| `jest`       | Jest JSON results.               |
+| `vitest`     | Vitest JSON results.             |
+| `cypress`    | Mochawesome JSON reports.        |
+| `junit`      | JUnit XML.                       |
+| `nunit`      | NUnit XML.                       |
+| `mocha`      | Mocha JSON reporter output.      |
+| `pytest`     | pytest-json-report JSON.         |
+| `testng`     | TestNG XML results.              |
+
+Sample inputs are available in [examples](examples). See also the [TestNG structure guide](docs/TESTNG_STRUCTURE.md).
+
+### Delivery options
+
+| Option               | Purpose / default                                              |
+| -------------------- | -------------------------------------------------------------- |
+| `--webhook <url>`    | Override the upload URL.                                       |
+| `--headers <json>`   | Add custom request headers.                                    |
+| `--method <method>`  | `POST`, `PUT`, or `PATCH`; default `POST`.                     |
+| `--timeout <ms>`     | Request timeout; default `30000`.                              |
+| `--retries <count>`  | Total delivery attempts, including the first; default `3`.     |
+| `--retry-delay <ms>` | Initial retry delay; default `1000`, with exponential backoff. |
+
+Use `npx test-portal-cli --help` for the complete option list.
+
+## CI integration
+
+After your CI job installs the CLI and generates a report, run:
+
+```bash
+npx test-portal-cli --input report.json --type jest --output ctrf-report.json
+```
+
+Supply `TEST_PORTAL_URL` and `TEST_PORTAL_API_KEY` through your CI configuration. Use a provider matching the report, and arrange for this step to run even when tests fail if you want failed results uploaded. Keep `ctrf-report.json` as a CI artifact for inspection.
+
+For GitHub Actions, the package installation step needs registry authentication and package access. An example setup is:
 
 ```yaml
-steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+permissions:
+  contents: read
+  packages: read
 
-  - name: Set up Node
-    uses: actions/setup-node@v4
+steps:
+  - uses: actions/checkout@v4
+  - uses: actions/setup-node@v4
     with:
       node-version: '22'
       registry-url: 'https://npm.pkg.github.com'
-
-  - name: Configure npm auth for GitHub Packages
-    run: |
-      echo "@vention-test-portal:registry=https://npm.pkg.github.com" >> .npmrc
-      echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
-
-  - name: Install test reporter CLI
-    run: |
-      npm install @vention-test-portal/test-portal-integration-cli
-
-  - name: Run tests
-    run: |
-      # Run your tests and generate a report (e.g., JUnit, JSON)
-      npm test -- --json --outputFile=report.json
-
-  - name: Send test report
+      scope: '@vention-test-portal'
+  - name: Install TestPortal CLI
+    run: npm install --no-save @vention-test-portal/test-portal-integration-cli
     env:
-      TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
-      TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
-    run: |
-      # Use npx to run the CLI
-      npx test-portal-cli report.json
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### 3. Local Development
+The consuming repository must have access to the package for its `GITHUB_TOKEN` to work. Add your test and report-upload steps after this setup.
 
-To use the package locally:
-
-1. Create a Personal Access Token (PAT) with `read:packages` scope.
-2. Add the following to your `~/.npmrc`:
-   ```ini
-   @vention-test-portal:registry=https://npm.pkg.github.com
-   //npm.pkg.github.com/:_authToken=YOUR_PAT
-   ```
-3. Install and run:
-   ```bash
-   npm install @vention-test-portal/test-portal-integration-cli
-   npx test-portal-cli report.json
-   ```
-
-## 📖 Usage
-
-### Environment Configuration
-
-Create a `.env` file in your project root to configure default webhook settings:
-
-### CLI Usage
-
-```bash
-# Test Portal URL - Default webhook URL for sending test reports
-TEST_PORTAL_URL=http://localhost:3001/api/v2/upload-ctrf-report-api-key
-
-# Test Portal API Key - Used for authenticating webhook requests
-TEST_PORTAL_API_KEY=your-api-key-here
-```
-
-**Note:** When `TEST_PORTAL_URL` is set, the CLI will automatically send reports to this URL unless `--webhook` is explicitly provided. The `TEST_PORTAL_API_KEY` is automatically added as the `X-API-Key` header for all webhook requests.
-
-### CLI Examples
-
-```bash
-# Convert Playwright results to unified format (file only)
-test-portal-cli -i playwright-results.json -t playwright -o unified-report.json
-
-# Send report to TEST_PORTAL_URL from .env (automatic)
-test-portal-cli -i playwright-results.json -t playwright
-
-# Override .env webhook URL
-test-portal-cli -i playwright-results.json -t playwright --webhook https://api.example.com/reports
-
-# Output to console only
-test-portal-cli -i playwright-results.json -t playwright --stdout
-
-# File output + webhook to .env URL
-test-portal-cli -i playwright-results.json -t playwright -o unified-report.json
-```
-
-### Programmatic Usage
+## Node.js library
 
 ```typescript
 import { convert } from '@vention-test-portal/test-portal-integration-cli';
 
+// Return an internal UnifiedReport without writing a file or uploading.
 const report = await convert({
-  input: './playwright-results.json',
+  input: './playwright-report.json',
   provider: 'playwright',
-  output: './unified-report.json',
 });
 
-console.log('Conversion complete!', report);
-```
+console.log(report.stats);
 
-## 🛠️ CLI Options
-
-### Required Options
-
-- `-i, --input <path>` - Path to source report file
-- `-t, --type <provider>` - Provider type: jest, playwright, cypress, junit, vitest, nunit, mocha, pytest
-
-### Output Options
-
-- `-o, --output <path>` - Write unified report to file
-- `--stdout` - Output to console instead of file
-
-### Webhook Options
-
-- `--webhook <url>` - Send report to webhook URL (defaults to `TEST_PORTAL_URL` env var)
-- `--headers <json>` - Custom headers as JSON string
-- `--method <method>` - HTTP method: POST, PUT, PATCH (default: POST)
-- `--timeout <ms>` - Request timeout in milliseconds (default: 30000)
-- `--retries <count>` - Number of retry attempts (default: 3)
-- `--retry-delay <ms>` - Delay between retries in milliseconds (default: 1000)
-- `--verify-ssl` / `--no-verify-ssl` - SSL certificate verification
-
-**Authentication:** The CLI automatically uses `TEST_PORTAL_API_KEY` from `.env` as the `X-API-Key` header for all webhook requests.
-
-## 🔗 Advanced Webhook Usage
-
-### Using Environment Variables (Recommended)
-
-Set up your `.env` file once and all reports are automatically sent:
-
-```bash
-# .env
-TEST_PORTAL_URL=https://test-portal.example.com/api/v2/upload-ctrf-report-api-key
-TEST_PORTAL_API_KEY=your-api-key-here
-```
-
-```bash
-# Reports are automatically sent to TEST_PORTAL_URL with API key authentication
-test-portal-cli -i results.json -t playwright
-```
-
-### With Custom Headers
-
-```bash
-test-portal-cli -i results.json -t playwright \
-  --webhook https://api.example.com/reports \
-  --headers '{"X-Team": "qa", "X-Environment": "production"}'
-```
-
-**Note:** The `X-API-Key` header is automatically included from `TEST_PORTAL_API_KEY` env var.
-
-### With Retry Configuration
-
-```bash
-test-portal-cli -i results.json -t playwright \
-  --webhook https://api.example.com/reports \
-  --retries 5 \
-  --retry-delay 2000 \
-  --timeout 60000
-```
-
-### Skip SSL Verification (Development Only)
-
-```bash
-test-portal-cli -i results.json -t playwright \
-  --webhook https://internal-api.company.com/reports \
-  --no-verify-ssl
-```
-
-## 💻 Programmatic API
-
-### Basic Conversion
-
-```typescript
-import { convert } from '@vention-test-portal/test-portal-integration-cli';
-
-const report = await convert({
-  input: './test-results.json',
+// Return UnifiedReport and also write a CTRF file.
+await convert({
+  input: './playwright-report.json',
   provider: 'playwright',
-  output: './unified-report.json',
+  output: './ctrf-report.json',
 });
 ```
 
-### With Webhook
+The return value is the internal `UnifiedReport`; file, console, and webhook output is CTRF. Unlike the CLI, the library requires an explicit `webhook` option to upload. Load `.env` yourself if your application needs it. See the [API guide](docs/API.md) for conversion options and exported types.
 
-```typescript
-import { convert } from '@vention-test-portal/test-portal-integration-cli';
-
-const report = await convert({
-  input: './test-results.json',
-  provider: 'playwright',
-  webhook: {
-    url: 'https://api.example.com/reports',
-    authToken: 'your-api-token',
-    retries: 3,
-  },
-});
-```
-
-### Advanced Usage
-
-```typescript
-import {
-  convert,
-  Converter,
-} from '@vention-test-portal/test-portal-integration-cli';
-
-const converter = new Converter();
-
-// Check available providers
-console.log(converter.getAvailableProviders()); // ['jest', 'playwright', 'cypress', 'junit', 'vitest', 'nunit', 'mocha', 'pytest']
-
-// Convert with full options
-await converter.convertAndSave({
-  input: './test-results.json',
-  provider: 'playwright',
-  output: './unified-report.json',
-  webhook: {
-    url: 'https://api.example.com/webhook',
-    method: 'PUT',
-    timeout: 45000,
-    retries: 5,
-    retryDelay: 2000,
-    headers: {
-      'X-API-Key': 'your-key',
-    },
-  },
-});
-```
-
-## 📋 Provider Support
-
-### Status Mapping
-
-| Framework  | Unified Status                                | Notes                                         |
-| ---------- | --------------------------------------------- | --------------------------------------------- |
-| Jest       | passed, failed, pending, todo                 | Standard Jest statuses                        |
-| Playwright | passed, failed, skipped, timeout, interrupted | Includes flaky test handling                  |
-| Cypress    | passed, failed, pending                       | Basic Cypress statuses                        |
-| JUnit      | passed, failed, skipped                       | XML format support                            |
-| Vitest     | passed, failed, skipped, pending, todo        | Jest-compatible format                        |
-| NUnit      | passed, failed, skipped                       | XML format support                            |
-| Pytest     | passed, failed, skipped                       | xfailed→skipped, xpassed→passed, error→failed |
-
-## 📊 Unified Output Format
-
-The tool generates unified format reports with consistent structure:
-
-```json
-{
-  "id": "unique-report-id",
-  "runId": "optional-run-id",
-  "framework": "playwright",
-  "frameworkVersion": "1.40.0",
-  "stats": {
-    "total": 10,
-    "passed": 8,
-    "failed": 1,
-    "skipped": 1,
-    "duration": 45000,
-    "startTime": "2024-01-01T10:00:00.000Z",
-    "endTime": "2024-01-01T10:00:45.000Z"
-  },
-  "suites": [
-    {
-      "id": "suite-id",
-      "name": "Login Tests",
-      "file": "tests/login.spec.ts",
-      "tests": [
-        {
-          "id": "test-id",
-          "name": "should login with valid credentials",
-          "status": "passed",
-          "duration": 1500,
-          "results": [
-            {
-              "attemptNumber": 1,
-              "status": "passed",
-              "duration": 1500,
-              "startTime": "2024-01-01T10:00:00.000Z"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "createdAt": "2024-01-01T10:00:45.000Z"
-}
-```
-
-## 🔧 Framework Specific Notes
-
-### Playwright
-
-- Supports retry attempts and flaky test detection
-- Includes project information and browser details
-- Maps unexpected status to failed
-
-### Jest
-
-- Includes coverage information when available
-- Maps todo tests to todo status
-- Aggregates assertion counts
-
-### Cypress
-
-- Supports mochawesome report format
-- Includes screenshot and video references
-- Maps pending tests appropriately
-
-### JUnit
-
-- Supports both single testsuite and testsuites formats
-- Maps errors to failed status
-- Handles skipped tests correctly
-
-### Pytest
-
-- Supports pytest-json-report plugin format
-- Maps xfailed (expected failures) to skipped status
-- Maps xpassed (unexpected passes) to passed status
-- Maps error outcomes to failed status
-- Aggregates durations from setup/call/teardown stages
-- Extracts errors from stage failures with traceback
-- Groups tests by file into suites
-
-### TestNG
-
-- Supports standard TestNG XML output (`testng-results.xml`)
-- Maps suites and classes to unified suites
-- Filters out configuration methods (e.g., `@BeforeClass`)
-- Captures exception details and stack traces
-
-## 📝 Example Output
+## Development
 
 ```bash
-✅ Successfully converted ./results.json to unified format
-✅ Successfully sent to webhook: https://api.example.com/reports
-```
-
-## 🚀 CI/CD Integration
-
-### GitHub Actions
-
-Use repository secrets to configure the Test Portal URL and API key:
-
-```yaml
-- name: Convert and Send Test Results
-  env:
-    TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
-    TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
-  run: |
-    npx test-portal-cli -i test-results.json -t playwright
-```
-
-### With File Output
-
-```yaml
-- name: Convert and Save Test Results
-  env:
-    TEST_PORTAL_URL: ${{ secrets.TEST_PORTAL_URL }}
-    TEST_PORTAL_API_KEY: ${{ secrets.TEST_PORTAL_API_KEY }}
-  run: |
-    npx test-portal-cli -i test-results.json -t playwright \
-      --output artifacts/unified-report.json
-
-- name: Upload Test Results
-  uses: actions/upload-artifact@v3
-  with:
-    name: test-results
-    path: artifacts/unified-report.json
-```
-
-### GitLab CI
-
-```yaml
-test_report_conversion:
-  variables:
-    TEST_PORTAL_URL: $TEST_PORTAL_URL
-    TEST_PORTAL_API_KEY: $TEST_PORTAL_API_KEY
-  script:
-    - npx test-portal-cli -i test-results.json -t playwright
-```
-
-## 🛠️ Development
-
-```bash
-git clone https://github.com/Vention-Test-Portal/test-portal-integration-cli.git
-cd test-portal-integration-cli
-npm install
-
-# Copy .env.example to .env and configure
-cp .env.example .env
-
-# Build the project
+git clone https://github.com/VENTIONINC/TestPortal-cli.git
+cd TestPortal-cli
+npm ci
 npm run build
-
-# Run tests
-npm test
-
-# Run CLI in development mode (without building)
-npm run dev -- -i examples/vitest-report-with-env.json -t vitest -o output.json
-
-# Run CLI after building
-node dist/cli.js -i examples/vitest-report-with-env.json -t vitest -o output.json
+node dist/cli.js --input examples/playwright-example.json --type playwright --output /tmp/testportal-ctrf-report.json
 ```
 
-For information on how to release new versions, see [docs/RELEASING.md](docs/RELEASING.md).
+The final command creates a CTRF report from the included fixture. Run it without `TEST_PORTAL_URL` configured for a local-only example.
 
-## 📋 Requirements
+| Command             | Purpose                                   |
+| ------------------- | ----------------------------------------- |
+| `npm run format`    | Format TypeScript source.                 |
+| `npm run typecheck` | Check TypeScript without emitting output. |
+| `npm run lint`      | Run ESLint.                               |
+| `npm test`          | Run the Jest suite.                       |
+| `npm run build`     | Compile the CLI and library to `dist/`.   |
 
-- Node.js >= 18.0.0
-- TypeScript for development
+## Feedback, contributions, and releases
 
-## 🐛 Troubleshooting
+- [Report a bug or request a feature](https://github.com/VENTIONINC/TestPortal-cli/issues). Include the provider, command, and a sanitized report sample when relevant.
+- [Contributing guide](CONTRIBUTING.md).
+- [Release process](docs/RELEASING.md).
+- [Published releases](https://github.com/VENTIONINC/TestPortal-cli/releases).
 
-### Common Issues
+## License
 
-1. **File not found**: Ensure the input file path is correct
-2. **Invalid format**: Verify the provider type matches your test framework
-3. **Webhook failures**: Check network connectivity and authentication
-4. **SSL errors**: Use `--no-verify-ssl` for internal endpoints (not recommended for production)
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-Use `npm run new:file -- <path>` when creating a new supported source file so
-the standard Apache 2.0 header is applied automatically.
-
-To backfill the standard Apache 2.0 header across existing supported files in
-`src` and `tests`, run `npm run headers:add`.
-
-## 📄 License
-
-This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE)
-for the full text and [NOTICE](NOTICE) for the project copyright notice.
-
-## 🔗 Links
-
-- [Create an issue](https://github.com/Vention-Test-Portal/test-portal-integration-cli/issues)
-- [View existing issues](https://github.com/Vention-Test-Portal/test-portal-integration-cli/issues)
-- [Check documentation](https://github.com/Vention-Test-Portal/test-portal-integration-cli/wiki)
-
-## 🙏 Acknowledgments
-
-- TypeScript community for excellent tooling
-- Test framework maintainers for consistent reporting formats
+Licensed under the Apache License 2.0. See [LICENSE](LICENSE) for the full terms and [NOTICE](NOTICE) for copyright attribution.
