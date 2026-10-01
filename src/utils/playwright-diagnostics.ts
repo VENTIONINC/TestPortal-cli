@@ -93,6 +93,63 @@ const normalizeLogs = (value: unknown): string[] | undefined => {
     : undefined;
 };
 
+const deriveSourceSnippet = (
+  rawSnippet: string,
+  specLocation: { file: string; line: number },
+  errorLocation: { file: string; line: number; column?: number } | undefined
+) => {
+  if (!errorLocation) return undefined;
+
+  const ansiEscapeSequence = new RegExp(
+    `${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`,
+    'gu'
+  );
+  const codeFrameLines = rawSnippet
+    .replace(ansiEscapeSequence, '')
+    .split(/\r?\n/u)
+    .flatMap(line => {
+      const match = /^\s*>?\s*(\d+)\s+\|\s?(.*)$/u.exec(line);
+      return match
+        ? [
+            {
+              line: Number(match[1]),
+              text: match[2] ?? '',
+              failing: /^\s*>/u.test(line),
+            },
+          ]
+        : [];
+    });
+
+  if (codeFrameLines.length > 0) {
+    const startLine = codeFrameLines[0]?.line;
+    const lastLine = codeFrameLines[codeFrameLines.length - 1]?.line;
+    const markedFailingLine = codeFrameLines.find(item => item.failing)?.line;
+    const failingLine = markedFailingLine ?? errorLocation.line;
+    if (
+      startLine !== undefined &&
+      lastLine !== undefined &&
+      failingLine >= startLine &&
+      failingLine <= lastLine
+    ) {
+      return {
+        path: errorLocation.file,
+        // Keep Playwright's original frame formatting for consumers that
+        // render its gutter, stack location, and failing-line marker.
+        text: rawSnippet,
+        startLine,
+        failingLine,
+      };
+    }
+  }
+
+  return {
+    path: errorLocation.file,
+    text: rawSnippet,
+    startLine: Math.min(specLocation.line, errorLocation.line),
+    failingLine: errorLocation.line,
+  };
+};
+
 export const normalizePlaywrightAttempt = (
   value: unknown,
   specLocation: { file: string; line: number }
@@ -114,13 +171,8 @@ export const normalizePlaywrightAttempt = (
   const rawError = asRecord(attempt.error);
   const errorLocation = location(rawError?.location);
   const derivedSnippet =
-    typeof rawError?.snippet === 'string' && errorLocation
-      ? {
-          path: errorLocation.file,
-          text: rawError.snippet,
-          startLine: Math.min(specLocation.line, errorLocation.line),
-          failingLine: errorLocation.line,
-        }
+    typeof rawError?.snippet === 'string'
+      ? deriveSourceSnippet(rawError.snippet, specLocation, errorLocation)
       : undefined;
   const snippet = SourceSnippetSchema.safeParse(
     attempt.sourceSnippet ?? derivedSnippet
