@@ -19,6 +19,7 @@ import {
   PlaywrightSuite,
   PlaywrightSpec,
 } from '@/types/playwright';
+import { normalizePlaywrightAttempt } from '@/utils/playwright-diagnostics';
 
 export class PlaywrightProvider implements BaseProvider {
   public readonly name = 'playwright';
@@ -116,25 +117,19 @@ export class PlaywrightProvider implements BaseProvider {
     spec: PlaywrightSpec
   ): UnifiedTestResult {
     // Convert all execution attempts to results array
-    const results = test.results.map((result, index) => ({
-      attemptNumber: index + 1,
-      status: this.mapStatus(result.status),
-      duration: result.duration || 0,
-      startTime: result.startTime,
-      errors:
-        result.errors?.map(error => ({
-          message: error.message,
-          stack: error.stack,
-          location: error.location
-            ? {
-                file: error.location.file,
-                line: error.location.line,
-                column: error.location.column,
-              }
-            : undefined,
-          snippet: error.snippet,
-        })) || undefined,
-    }));
+    const results = test.results.map((result, index) => {
+      const normalized = normalizePlaywrightAttempt(result, {
+        file: spec.file,
+        line: spec.line,
+      });
+      return {
+        attemptNumber: result.retry + 1 || index + 1,
+        status: this.mapStatus(result.status),
+        duration: normalized.duration,
+        startTime: normalized.startTime,
+        ...(normalized.errors.length > 0 ? { errors: normalized.errors } : {}),
+      };
+    });
 
     // Calculate summary information
     const totalDuration = results.reduce(
