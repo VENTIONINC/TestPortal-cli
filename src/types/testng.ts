@@ -4,8 +4,9 @@
 export type TestNGStatus = 'PASS' | 'FAIL' | 'SKIP';
 
 export interface TestNGException {
-  message: string;
+  message?: string;
   'full-stacktrace': string;
+  '@_class'?: string;
 }
 
 export interface TestNGTestMethod {
