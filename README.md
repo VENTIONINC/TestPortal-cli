@@ -98,26 +98,37 @@ To use the package locally:
 
 Create a `.env` file in your project root to configure default webhook settings:
 
-### CLI Usage
-
 ```bash
 # Test Portal URL - Default webhook URL for sending test reports
 TEST_PORTAL_URL=http://localhost:3001/api/v2/upload-ctrf-report-api-key
 
 # Test Portal API Key - Used for authenticating webhook requests
 TEST_PORTAL_API_KEY=your-api-key-here
+
+# Optional: custom execution type and test environment for uploaded runs
+EXECUTION_TYPE=release
+TEST_ENVIRONMENT=develop
 ```
 
 **Note:** When `TEST_PORTAL_URL` is set, the CLI will automatically send reports to this URL unless `--webhook` is explicitly provided. The `TEST_PORTAL_API_KEY` is automatically added as the `X-API-Key` header for all webhook requests.
+
+`EXECUTION_TYPE` is written to `results.environment.executionType`. `TEST_ENVIRONMENT` is written to `results.environment.testEnvironment` (defaults to `ci` when a CI system is detected and the variable is unset).
+
+```bash
+EXECUTION_TYPE=release \
+TEST_ENVIRONMENT=develop \
+GITHUB_ACTIONS=true GITHUB_RUN_NUMBER=42 GITHUB_WORKFLOW=e2e \
+npx test-portal-cli -i examples/playwright-example.json -t playwright
+```
 
 ### CLI Examples
 
 ```bash
 # Convert Playwright results to unified format (file only)
-test-portal-cli -i playwright-results.json -t playwright -o unified-report.json
+test-portal-cli -i examples/playwright-example.json -t playwright -o unified-report.json
 
 # Send report to TEST_PORTAL_URL from .env (automatic)
-test-portal-cli -i playwright-results.json -t playwright
+test-portal-cli -i examples/playwright-example.json -t playwright
 
 # Override .env webhook URL
 test-portal-cli -i playwright-results.json -t playwright --webhook https://api.example.com/reports

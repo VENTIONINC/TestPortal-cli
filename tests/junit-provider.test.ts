@@ -11,7 +11,11 @@ describe('JunitProvider', () => {
 
   beforeEach(() => {
     provider = new JunitProvider();
-    testDataDir = join(__dirname, 'test-data', `junit-${Date.now()}-${Math.random()}`);
+    testDataDir = join(
+      __dirname,
+      'test-data',
+      `junit-${Date.now()}-${Math.random()}`
+    );
   });
 
   afterEach(async () => {
@@ -107,7 +111,10 @@ describe('JunitProvider', () => {
       expect(unifiedReport.suites[0]?.tests).toHaveLength(3);
       expect(unifiedReport.suites[0]?.tests[0]?.name).toBe('test1');
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('passed');
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(1.0);
+      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(1000);
+      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.duration).toBe(
+        1000
+      );
       expect(unifiedReport.stats.total).toBe(3);
       expect(unifiedReport.stats.passed).toBe(3);
       expect(unifiedReport.stats.failed).toBe(0);
@@ -135,6 +142,31 @@ describe('JunitProvider', () => {
       expect(unifiedReport.stats.passed).toBe(2);
     });
 
+    it('preserves the testsuite timestamp on tests and as the report start time', async () => {
+      const executionTime = '2024-01-01T00:00:00.000Z';
+      const junitReport = `<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="0" errors="0" time="1.0">
+  <testsuite name="Suite1" tests="1" failures="0" errors="0" time="1.0" timestamp="${executionTime}">
+    <testcase name="test1" classname="com.example.TestClass" time="1.0"/>
+  </testsuite>
+</testsuites>`;
+
+      const testFile = join(testDataDir, 'suite-timestamp.xml');
+      await fs.mkdir(testDataDir, { recursive: true });
+      await fs.writeFile(testFile, junitReport, 'utf8');
+
+      const unifiedReport = await provider.convert(testFile);
+
+      expect(unifiedReport.stats.startTime).toBe(executionTime);
+      expect(unifiedReport.suites[0]?.tests[0]?.startTime).toBe(executionTime);
+      expect(unifiedReport.suites[0]?.tests[0]?.endTime).toBe(
+        '2024-01-01T00:00:01.000Z'
+      );
+      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.startTime).toBe(
+        executionTime
+      );
+    });
+
     it('should handle test failures correctly', async () => {
       const junitReport = `<?xml version="1.0" encoding="UTF-8"?>
 <testsuites name="Test Results" tests="2" failures="1" errors="0" time="2.0">
@@ -156,9 +188,15 @@ Actual: false
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.message).toBe('Assertion failed');
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.stack).toContain('Expected: true');
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors
+      ).toBeDefined();
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.message
+      ).toBe('Assertion failed');
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.stack
+      ).toContain('Expected: true');
       expect(unifiedReport.stats.passed).toBe(1);
       expect(unifiedReport.stats.failed).toBe(1);
     });
@@ -184,8 +222,12 @@ java.lang.NullPointerException: Cannot invoke method on null
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors).toBeDefined();
-      expect(unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.message).toBe('NullPointerException');
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors
+      ).toBeDefined();
+      expect(
+        unifiedReport.suites[0]?.tests[1]?.results[0]?.errors?.[0]?.message
+      ).toBe('NullPointerException');
       expect(unifiedReport.stats.passed).toBe(1);
       expect(unifiedReport.stats.failed).toBe(1);
     });
@@ -256,7 +298,7 @@ java.lang.NullPointerException: Cannot invoke method on null
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests[0]?.duration).toBeUndefined();
-      expect(unifiedReport.suites[0]?.tests[1]?.duration).toBe(1.5);
+      expect(unifiedReport.suites[0]?.tests[1]?.duration).toBe(1500);
     });
 
     it('should handle missing test name with default', async () => {
@@ -290,7 +332,9 @@ java.lang.NullPointerException: Cannot invoke method on null
 
       const unifiedReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.fullName).toBe('com.example.MyTestClass.testMethod');
+      expect(unifiedReport.suites[0]?.tests[0]?.fullName).toBe(
+        'com.example.MyTestClass.testMethod'
+      );
     });
 
     it('should handle mixed test statuses', async () => {
@@ -375,8 +419,8 @@ java.lang.NullPointerException: Cannot invoke method on null
 
       const unifiedReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.duration).toBe(2.5);
-      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(0.5);
+      expect(unifiedReport.suites[0]?.duration).toBe(2500);
+      expect(unifiedReport.suites[0]?.tests[0]?.duration).toBe(500);
     });
   });
 
@@ -399,9 +443,15 @@ java.lang.NullPointerException: Cannot invoke method on null
       const unifiedReport = await provider.convert(testFile);
 
       expect(unifiedReport.suites[0]?.tests[0]?.status).toBe('failed');
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toHaveLength(2);
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toBe('Assertion failed');
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[1]?.message).toBe('Exception occurred');
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors
+      ).toHaveLength(2);
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
+      ).toBe('Assertion failed');
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[1]?.message
+      ).toBe('Exception occurred');
     });
 
     it('should set default timestamp if not provided', async () => {
@@ -443,7 +493,9 @@ java.lang.NullPointerException: Cannot invoke method on null
       expect(unifiedReport.suites[0]?.tests[1]?.id).toBeDefined();
 
       // IDs should be unique
-      expect(unifiedReport.suites[0]?.tests[0]?.id).not.toBe(unifiedReport.suites[0]?.tests[1]?.id);
+      expect(unifiedReport.suites[0]?.tests[0]?.id).not.toBe(
+        unifiedReport.suites[0]?.tests[1]?.id
+      );
     });
 
     it('should handle failure without message attribute', async () => {
@@ -462,7 +514,9 @@ java.lang.NullPointerException: Cannot invoke method on null
 
       const unifiedReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toBe('Test failure');
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
+      ).toBe('Test failure');
     });
 
     it('should handle error without message attribute', async () => {
@@ -481,7 +535,9 @@ java.lang.NullPointerException: Cannot invoke method on null
 
       const unifiedReport = await provider.convert(testFile);
 
-      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message).toBe('Test error');
+      expect(
+        unifiedReport.suites[0]?.tests[0]?.results[0]?.errors?.[0]?.message
+      ).toBe('Test error');
     });
   });
 });

@@ -17,6 +17,8 @@ export class EnvironmentDetector {
       Object.assign(environment, git);
     }
 
+    Object.assign(environment, this.detectExecutionMetadata(Boolean(ci)));
+
     return environment;
   }
 
@@ -26,7 +28,6 @@ export class EnvironmentDetector {
     if (env.GITHUB_ACTIONS) {
       const serverUrl = env.GITHUB_SERVER_URL || 'https://github.com';
       return {
-        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.GITHUB_WORKFLOW,
         buildNumber: env.GITHUB_RUN_NUMBER,
         buildUrl: `${serverUrl}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`,
@@ -38,7 +39,6 @@ export class EnvironmentDetector {
 
     if (env.GITLAB_CI) {
       return {
-        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.CI_PROJECT_NAME,
         buildNumber: env.CI_PIPELINE_ID,
         buildUrl: env.CI_PIPELINE_URL,
@@ -50,7 +50,6 @@ export class EnvironmentDetector {
 
     if (env.JENKINS_URL) {
       return {
-        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.JOB_NAME,
         buildNumber: env.BUILD_NUMBER,
         buildUrl: env.BUILD_URL,
@@ -60,7 +59,6 @@ export class EnvironmentDetector {
 
     if (env.AZURE_HTTP_USER_AGENT) {
       return {
-        testEnvironment: env.TEST_ENVIRONMENT || 'ci',
         buildName: env.BUILD_DEFINITIONNAME,
         buildNumber: env.BUILD_BUILDNUMBER,
         buildUrl: `${env.SYSTEM_TEAMFOUNDATIONCOLLECTIONURI}${env.SYSTEM_TEAMPROJECT}/_build/results?buildId=${env.BUILD_BUILDID}`,
@@ -71,6 +69,26 @@ export class EnvironmentDetector {
     }
 
     return null;
+  }
+
+  private static detectExecutionMetadata(
+    ciDetected: boolean
+  ): Partial<CTRFEnvironment> {
+    const metadata: Partial<CTRFEnvironment> = {};
+    const testEnvironment = process.env.TEST_ENVIRONMENT?.trim();
+    const executionType = process.env.EXECUTION_TYPE?.trim();
+
+    if (testEnvironment) {
+      metadata.testEnvironment = testEnvironment;
+    } else if (ciDetected) {
+      metadata.testEnvironment = 'ci';
+    }
+
+    if (executionType) {
+      metadata.executionType = executionType;
+    }
+
+    return metadata;
   }
 
   private static async detectGit(): Promise<Partial<CTRFEnvironment> | null> {

@@ -189,6 +189,9 @@ describe('PlaywrightProvider', () => {
               {
                 title: 'should pass after retry',
                 ok: true,
+                file: 'retry.spec.ts',
+                line: 9,
+                column: 1,
                 tags: ['@smoke'],
                 tests: [
                   {
@@ -199,6 +202,13 @@ describe('PlaywrightProvider', () => {
                         status: 'failed',
                         duration: 100,
                         startTime: '2024-01-01T00:00:00.000Z',
+                        stdout: [{ text: 'browser started' }],
+                        error: {
+                          message: 'first attempt failed',
+                          stack: 'stack',
+                          location: { file: 'retry.spec.ts', line: 10, column: 5 },
+                          snippet: 'line 9\nexpect(value).toBe(true)',
+                        },
                         errors: [
                           {
                             message: 'first attempt failed',
@@ -285,6 +295,18 @@ describe('PlaywrightProvider', () => {
         line: 10,
         column: 5,
       });
+      expect(unifiedReport.suites[0]?.tests[0]?.results[0]?.errors).toEqual([
+        expect.objectContaining({
+          message: 'first attempt failed',
+          rawLogs: ['browser started'],
+          sourceSnippet: {
+            path: 'retry.spec.ts',
+            text: 'line 9\nexpect(value).toBe(true)',
+            startLine: 9,
+            failingLine: 10,
+          },
+        }),
+      ]);
       expect(unifiedReport.suites[0]?.tests[1]?.status).toBe('timeout');
       expect(unifiedReport.suites[0]?.tests[2]?.status).toBe('interrupted');
       expect(unifiedReport.stats.timeout).toBe(1);
