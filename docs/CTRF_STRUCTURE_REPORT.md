@@ -3,6 +3,49 @@
 ## Overview
 CTRF is a standardized JSON format for test results that supports multiple testing frameworks. The structure is defined using Zod schemas for runtime validation in the test-report-ctrfer project.
 
+This CLI emits the CTRF working draft identified by `specVersion: "0.0.0"`
+and `reportFormat: "CTRF"`. Generated reports can be checked with
+`validateGeneratedCtrf` without network access.
+
+## TestPortal diagnostics extension
+
+Standard CTRF fields carry the final error, stdout, snippet, location, and
+retry history. Information needed to preserve multiple ordered errors and
+their TestPortal modal diagnostics is stored only under the schema extension
+point `test.extra.testPortal` (or `retryAttempt.extra.testPortal`):
+
+```json
+{
+  "extra": {
+    "testPortal": {
+      "version": 1,
+      "errors": [
+        {
+          "index": 0,
+          "message": "checkout failed",
+          "rawLogs": ["browser started"],
+          "sourceSnippet": {
+            "path": "checkout.spec.ts",
+            "text": "await submit.click();",
+            "startLine": 12,
+            "failingLine": 12
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+Empty enrichment is omitted. The backend still reads the former test-level
+`meta.logs`, `meta.sourceSnippet`, and `meta.generatedTestCase` keys, but new
+producers must use the versioned `extra.testPortal` namespace.
+
+Provider implementations are the source-mapper boundary. A new mapper should
+register through `ProviderRegistry`, produce normalized attempts and ordered
+errors, and rely on the common CTRF serializer; the serializer must not branch
+on framework names.
+
 ## Root Structure
 
 ```json

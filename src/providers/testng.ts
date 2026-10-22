@@ -81,6 +81,13 @@ export class TestNGProvider implements BaseProvider {
     for (const method of methods) {
       if (method['@_is-config'] === 'true') continue;
 
+      const exception = method.exception;
+      const stackTrace = exception?.['full-stacktrace'];
+      const stackTraceMessage = stackTrace
+        ?.split('\n', 1)[0]
+        ?.replace(/^[\w.$]+:\s*/, '')
+        .trim();
+
       tests.push({
         id: randomUUID(),
         name: method['@_name'],
@@ -95,11 +102,15 @@ export class TestNGProvider implements BaseProvider {
             status: this.mapStatus(method['@_status']),
             duration: parseInt(method['@_duration-ms'] || '0', 10),
             startTime: method['@_started-at'],
-            errors: method.exception
+            errors: exception
               ? [
                   {
-                    message: method.exception.message,
-                    stack: method.exception['full-stacktrace'],
+                    message:
+                      exception.message ||
+                      stackTraceMessage ||
+                      exception['@_class'] ||
+                      'Test failed',
+                    stack: stackTrace,
                   },
                 ]
               : undefined,

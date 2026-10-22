@@ -113,7 +113,7 @@ describe('fixture-to-CTRF conversion pipeline', () => {
             /^(passed|failed|skipped|pending|other)$/
           ),
           duration: expect.any(Number),
-          suite: expect.any(String),
+          suite: expect.any(Array),
           rawStatus: expect.any(String),
         })
       );
