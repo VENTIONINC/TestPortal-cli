@@ -16,6 +16,23 @@ A powerful CLI tool and programmatic library for converting test reports from po
 - ⚡ **Fast & reliable**: Built with TypeScript for type safety
 - 📝 **Detailed output**: Comprehensive test results with error details
 
+## 🛠️ Development Setup
+
+In a Git checkout, `npm install` automatically activates the versioned Husky
+pre-commit hook. The guarded installer skips CI, production installs, installs
+without development dependencies, and source trees without Git metadata. To
+reactivate the hook in an existing clone, run `npm run prepare` and verify
+`git config --local --get core.hooksPath` prints `.husky/_`.
+
+The hook runs these non-interactive checks once each, in order:
+
+1. `npm run typecheck`
+2. `npm run lint`
+3. `npm test -- --ci`
+
+The hook is for this repository's development checkout. Installing the published
+CLI package does not install Husky in a consumer project.
+
 ## 🚀 Installation
 
 ### Global Installation (CLI)

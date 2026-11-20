@@ -16,6 +16,7 @@
     "NOTICE"
   ],
   "scripts": {
+    "prepare": "node -e \"const fs=require('node:fs');const {spawnSync}=require('node:child_process');const omitted=(process.env.npm_config_omit||'').split(',');if(process.env.HUSKY==='0'||process.env.CI||process.env.NODE_ENV==='production'||process.env.npm_config_production==='true'||omitted.includes('dev')||!fs.existsSync('.git'))process.exit(0);const result=spawnSync('husky',[],{stdio:'inherit'});if(result.error)throw result.error;process.exit(result.status??1)\"",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "dev": "ts-node src/cli.ts",
     "headers:add": "node scripts/add-license-headers.js",
@@ -60,6 +61,7 @@
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "5.5.1",
+    "husky": "9.1.7",
     "jest": "29.7.0",
     "prettier": "3.6.1",
     "rimraf": "5.0.10",
