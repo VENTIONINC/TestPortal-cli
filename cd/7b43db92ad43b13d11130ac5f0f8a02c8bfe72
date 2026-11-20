@@ -1,0 +1,21 @@
+.husky/pre-commit
+  s_fbe32e58cf1208::t_71cc76aaac9e18 1-17
+package-lock.json
+  s_fbe32e58cf1208::t_47e10767f7ba27 33,3680-3695
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cd7b43db92ad43b13d11130ac5f0f8a02c8bfe72",
+  "prompts": {},
+  "sessions": {
+    "s_fbe32e58cf1208": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f365-57d9-79e1-a57e-6b68e09bbd8b",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Ihar Mikailau <ihar.mikailau@ventionteams.com>"
+    }
+  }
+}
