@@ -1,0 +1,21 @@
+.husky/install.mjs
+  s_4e164d05b02c19::t_28bc39277ff5ed 1-23
+package.json
+  s_4e164d05b02c19::t_300da36d067630 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0d6fed49313db77341c5a510e6e1126e518a670c",
+  "prompts": {},
+  "sessions": {
+    "s_4e164d05b02c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a207bb-67a0-7e80-88d5-41c3c6a4adc5",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Ihar Mikailau <ihar.mikailau@ventionteams.com>"
+    }
+  }
+}
