@@ -20,6 +20,10 @@ export async function convertUnifiedToCTRF(
         name: test.fullName || test.name,
         status: mapStatusToCTRF(test.status),
         duration: test.duration || 0,
+        ...(test.startTime
+          ? { start: new Date(test.startTime).getTime() }
+          : {}),
+        ...(test.endTime ? { stop: new Date(test.endTime).getTime() } : {}),
         suite: [suite.name],
         filePath: suite.file,
       };

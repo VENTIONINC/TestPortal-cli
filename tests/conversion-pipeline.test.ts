@@ -1,6 +1,7 @@
 // Copyright 2026 VENSOLUTIONSGROUP LTD
 // SPDX-License-Identifier: Apache-2.0
 
+import { promises as fs } from 'fs';
 import { join } from 'path';
 
 import {
@@ -126,4 +127,52 @@ describe('fixture-to-CTRF conversion pipeline', () => {
       }
     }
   );
+
+  it('uses testcase timestamps independently from suite timestamps in CTRF', async () => {
+    const inputPath = join(outputDir, 'historical-junit.xml');
+    const outputPath = join(outputDir, 'historical-ctrf.json');
+    await fs.writeFile(
+      inputPath,
+      '<testsuites tests="2" failures="0" errors="0" time="12"><testsuite name="Suite" tests="2" failures="0" errors="0" time="12" timestamp="2024-01-01T00:00:00"><testcase name="later test" classname="Suite" time="1" timestamp="2024-01-01T00:00:10"/><testcase name="inherited test" classname="Suite" time="2"/></testsuite></testsuites>',
+      'utf8'
+    );
+
+    const ctrfReport = await convertFixtureToCTRF(
+      { input: inputPath, provider: 'junit' },
+      outputPath
+    );
+
+    const suiteStart = Date.UTC(2024, 0, 1, 0, 0, 0);
+    expect(ctrfReport.results.tests[0]).toMatchObject({
+      start: suiteStart + 10_000,
+      stop: suiteStart + 11_000,
+      duration: 1000,
+    });
+    expect(ctrfReport.results.tests[1]).toMatchObject({
+      start: suiteStart,
+      stop: suiteStart + 2_000,
+      duration: 2000,
+    });
+    expect(ctrfReport.results.summary.start).toBe(suiteStart);
+    expect(ctrfReport.results.summary.stop).toBe(suiteStart + 11_000);
+  });
+
+  it('uses the root testsuite timestamp as the CTRF report start', async () => {
+    const inputPath = join(outputDir, 'single-root-junit.xml');
+    const outputPath = join(outputDir, 'single-root-ctrf.json');
+    await fs.writeFile(
+      inputPath,
+      '<testsuite name="Suite" tests="1" failures="0" errors="0" time="11" timestamp="2024-01-01T00:00:00"><testcase name="later test" classname="Suite" time="1" timestamp="2024-01-01T00:00:10"/></testsuite>',
+      'utf8'
+    );
+
+    const ctrfReport = await convertFixtureToCTRF(
+      { input: inputPath, provider: 'junit' },
+      outputPath
+    );
+
+    const reportStart = Date.UTC(2024, 0, 1, 0, 0, 0);
+    expect(ctrfReport.results.tests[0]?.start).toBe(reportStart + 10_000);
+    expect(ctrfReport.results.summary.start).toBe(reportStart);
+  });
 });

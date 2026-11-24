@@ -83,6 +83,8 @@ export const CTRFTestSchema = z.object({
   name: z.string(),
   status: TestStatusSchema,
   duration: z.number(),
+  start: z.number().int().optional(),
+  stop: z.number().int().optional(),
   message: z.string().optional(),
   trace: z.string().optional(),
   rawStatus: z.string().optional(),

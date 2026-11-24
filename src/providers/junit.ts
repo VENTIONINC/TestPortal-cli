@@ -69,6 +69,7 @@ export class JunitProvider implements BaseProvider {
         failures: this.parseNumber(parsed.testsuite.failures) || 0,
         errors: this.parseNumber(parsed.testsuite.errors) || 0,
         time: this.parseNumber(parsed.testsuite.time) || 0,
+        timestamp: parsed.testsuite.timestamp,
         testsuite: testsuite,
       };
     }
@@ -95,7 +96,7 @@ export class JunitProvider implements BaseProvider {
         id: randomUUID(),
         name: suite.name || 'Unknown Suite',
         tests: this.convertTestCases(suite),
-        duration: this.parseNumber(suite.time),
+        duration: secondsToMilliseconds(this.parseNumber(suite.time)),
       };
 
       suites.push(unifiedSuite);
@@ -111,12 +112,20 @@ export class JunitProvider implements BaseProvider {
         ? [suite.testcase]
         : [];
 
-    return testCases.map(testCase => this.convertTestCase(testCase));
+    return testCases.map(testCase =>
+      this.convertTestCase(testCase, suite.timestamp)
+    );
   }
 
-  private convertTestCase(testCase: JunitTestCase): UnifiedTestResult {
+  private convertTestCase(
+    testCase: JunitTestCase,
+    suiteTimestamp?: string
+  ): UnifiedTestResult {
     const status = this.determineTestStatus(testCase);
-    const duration = this.parseNumber(testCase.time);
+    const duration = secondsToMilliseconds(this.parseNumber(testCase.time));
+    const startTime =
+      parseJunitTimestamp(testCase.timestamp) ??
+      parseJunitTimestamp(suiteTimestamp);
 
     // Create a single result attempt
     const results = [
@@ -124,7 +133,7 @@ export class JunitProvider implements BaseProvider {
         attemptNumber: 1,
         status: status,
         duration: duration,
-        startTime: undefined,
+        startTime,
         errors: this.extractErrors(testCase),
       },
     ];
@@ -135,8 +144,12 @@ export class JunitProvider implements BaseProvider {
       fullName: `${testCase.classname}.${testCase.name}`,
       status: status,
       duration: duration,
-      startTime: undefined,
-      endTime: undefined,
+      startTime,
+      endTime: startTime
+        ? new Date(
+            new Date(startTime).getTime() + (duration || 0)
+          ).toISOString()
+        : undefined,
       tags: undefined,
       assertions: undefined,
       results: results,
@@ -202,8 +215,41 @@ export class JunitProvider implements BaseProvider {
       }
     }
 
-    const startTime = junitData.timestamp || new Date().toISOString();
-    const duration = this.parseNumber(junitData.time) || 0;
+    const rawSuites = Array.isArray(junitData.testsuite)
+      ? junitData.testsuite
+      : [junitData.testsuite];
+    const testTimes = suites.flatMap(suite => suite.tests);
+    const testStarts = testTimes
+      .map(test => test.startTime)
+      .filter((timestamp): timestamp is string => Boolean(timestamp))
+      .map(timestamp => Date.parse(timestamp))
+      .filter(Number.isFinite);
+    const suiteStarts = rawSuites
+      .map(suite => parseJunitTimestamp(suite.timestamp))
+      .filter((timestamp): timestamp is string => Boolean(timestamp))
+      .map(timestamp => Date.parse(timestamp));
+    const rootStart = parseJunitTimestamp(junitData.timestamp);
+    const fallbackStart =
+      suiteStarts.length > 0
+        ? Math.min(...suiteStarts)
+        : rootStart
+          ? Date.parse(rootStart)
+          : Date.now();
+    const startTimestamp = rootStart
+      ? Date.parse(rootStart)
+      : testStarts.length > 0
+        ? Math.min(...testStarts)
+        : fallbackStart;
+    const startTime = new Date(startTimestamp).toISOString();
+    const duration =
+      secondsToMilliseconds(this.parseNumber(junitData.time)) || 0;
+    const testEnds = testTimes
+      .map(test => test.endTime)
+      .filter((timestamp): timestamp is string => Boolean(timestamp))
+      .map(timestamp => Date.parse(timestamp))
+      .filter(Number.isFinite);
+    const endTimestamp =
+      testEnds.length > 0 ? Math.max(...testEnds) : startTimestamp + duration;
 
     return {
       total,
@@ -211,11 +257,9 @@ export class JunitProvider implements BaseProvider {
       failed,
       skipped,
       suites: suites.length,
-      duration: duration * 1000, // Convert to milliseconds
+      duration,
       startTime,
-      endTime: new Date(
-        new Date(startTime).getTime() + duration * 1000
-      ).toISOString(),
+      endTime: new Date(endTimestamp).toISOString(),
     };
   }
 
@@ -227,4 +271,18 @@ export class JunitProvider implements BaseProvider {
     }
     return undefined;
   }
+}
+
+function parseJunitTimestamp(value?: string): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim();
+  const hasTimezone = /(?:Z|[+-]\d{2}(?::?\d{2})?)$/i.test(normalized);
+  const timestamp = Date.parse(hasTimezone ? normalized : `${normalized}Z`);
+  return Number.isFinite(timestamp)
+    ? new Date(timestamp).toISOString()
+    : undefined;
+}
+
+function secondsToMilliseconds(seconds?: number): number | undefined {
+  return seconds === undefined ? undefined : Math.round(seconds * 1000);
 }
