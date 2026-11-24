@@ -16,6 +16,7 @@
     "NOTICE"
   ],
   "scripts": {
+    "prepare": "node .husky/install.mjs",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "dev": "ts-node src/cli.ts",
     "headers:add": "node scripts/add-license-headers.js",
@@ -24,8 +25,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write src/**/*.ts",
     "format:check": "prettier --check src/**/*.ts",
     "clean": "rimraf dist",
@@ -60,6 +61,7 @@
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "5.5.1",
+    "husky": "9.1.7",
     "jest": "29.7.0",
     "prettier": "3.6.1",
     "rimraf": "5.0.10",
